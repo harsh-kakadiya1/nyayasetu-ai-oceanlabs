@@ -6,6 +6,7 @@ import { ArrowRight, FileText, ScanSearch, ShieldAlert, TimerReset, History, Upl
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 interface DocumentAnalysis {
 	document: {
@@ -29,6 +30,7 @@ interface DocumentAnalysis {
 
 export default function Dashboard() {
 	const { analysisResult, isAnalyzing, setAnalysisResult, setIsAnalyzing } = useAnalysis();
+	const { t } = useTranslation();
 	const [activeTab, setActiveTab] = useState("analyze");
 	const [showResults, setShowResults] = useState(false);
 	const analysisStartTimeRef = useRef<number | null>(null);
@@ -84,31 +86,31 @@ export default function Dashboard() {
 	useEffect(() => {
 		if (showResults && analysisResult && !hasShownToastRef.current) {
 			toast({
-				title: "Analysis Complete",
-				description: "Your document has been successfully analyzed.",
+				title: t("analysis.title"),
+				description: t("common.success"),
 			});
 			hasShownToastRef.current = true;
 		}
-	}, [showResults, analysisResult, toast]);
+	}, [showResults, analysisResult, toast, t]);
 
 	const stats = [
 		{
-			label: "Words scanned",
+			label: t("analysis.documentLength"),
 			value: analysisResult?.analysis?.wordCount
 				? `${analysisResult.analysis.wordCount.toLocaleString()}`
 				: "--",
 			icon: ScanSearch,
 		},
 		{
-			label: "Risk level",
+			label: t("analysis.riskLevel"),
 			value: analysisResult?.analysis?.riskLevel
-				? `${analysisResult.analysis.riskLevel.charAt(0).toUpperCase()}${analysisResult.analysis.riskLevel.slice(1)}`
-				: "Pending",
+				? t(`analysis.${analysisResult.analysis.riskLevel}`)
+				: "--",
 			icon: ShieldAlert,
 		},
 		{
-			label: "Processing time",
-			value: analysisResult?.analysis?.processingTime || "Awaiting",
+			label: t("analysis.processingTime"),
+			value: analysisResult?.analysis?.processingTime || "--",
 			icon: TimerReset,
 		},
 	];
@@ -120,16 +122,16 @@ export default function Dashboard() {
 				<section className="mb-8 rounded-3xl border border-[#2d575e]/15 bg-white/80 p-6 shadow-lg backdrop-blur-sm">
 					<div className="flex flex-wrap items-center justify-between gap-4 mb-6">
 						<div>
-							<p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#4a7379]">Dashboard workspace</p>
+							<p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#4a7379]">{t("navigation.dashboard")}</p>
 							<h1 className="font-display mt-2 text-2xl font-semibold text-[#1d3b40] sm:text-3xl">
-								Analyze documents with strategic context
+								{t("analysis.title")}
 							</h1>
 						</div>
 						{showResults && analysisResult?.analysis && (
 							<div className="flex items-center gap-2 rounded-full border border-[#2f5960]/20 bg-gradient-to-r from-[#eef8f5] to-[#f5fcfa] px-4 py-2">
 								<CheckCircle2 className="h-4 w-4 text-[#1f565f]" />
 								<span className="text-sm font-medium text-[#2b5359]">
-									Latest: {analysisResult.document?.filename || "Text Input"}
+									{analysisResult.document?.filename || t("upload.pasteText")}
 								</span>
 							</div>
 						)}
@@ -163,7 +165,7 @@ export default function Dashboard() {
 						}`}
 					>
 						<Upload className="h-4 w-4" />
-						New Analysis
+						{t("upload.title")}
 					</button>
 					<button
 						onClick={() => setActiveTab("history")}
@@ -174,7 +176,7 @@ export default function Dashboard() {
 						}`}
 					>
 						<History className="h-4 w-4" />
-						History
+						{t("navigation.history")}
 					</button>
 				</div>
 
@@ -191,12 +193,12 @@ export default function Dashboard() {
 											<Upload className="h-5 w-5 text-[#f6b26b]" />
 										</div>
 										<div>
-											<p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#b9e9db]">Quick Upload</p>
-											<h2 className="font-display text-xl font-semibold text-white">Bring your contract in</h2>
+											<p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#b9e9db]">{t("upload.title")}</p>
+											<h2 className="font-display text-xl font-semibold text-white">{t("navigation.getStarted")}</h2>
 										</div>
 									</div>
 									<p className="text-sm leading-relaxed text-[#d0f4ea]">
-										Choose a file or paste text, then let AI map obligations, penalties, and risky clauses.
+										{t("welcome.description")}
 									</p>
 								</div>
 
@@ -212,9 +214,9 @@ export default function Dashboard() {
 
 								{/* Tip Card */}
 								<div className="rounded-2xl border border-[#284d54]/20 bg-gradient-to-br from-[#f5fcfa] to-[#f9fffe] p-4">
-									<p className="font-semibold text-[#1f565f] text-sm">💡 Pro Tip</p>
+									<p className="font-semibold text-[#1f565f] text-sm">{t("common.next")}</p>
 									<p className="mt-2 text-sm text-[#41656b] leading-relaxed">
-										Use "detailed" for negotiation prep and "brief" for quick screening.
+										{t("upload.detailed")}, {t("upload.brief")}
 									</p>
 								</div>
 							</aside>
@@ -235,13 +237,13 @@ export default function Dashboard() {
 											<FileText className="h-12 w-12 text-[#1f565f]" />
 										</div>
 										<h3 className="font-display text-2xl font-semibold text-[#1f3d42]">
-											Ready to analyze
+											{t("welcome.title")}
 										</h3>
 										<p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-[#557980]">
-											Upload a legal document to receive risk ratings, clause summaries, and practical next-step suggestions.
+											{t("welcome.description")}
 										</p>
 										<div className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#2f5960]/20 bg-gradient-to-r from-[#f0f9f6] to-[#f5fcfa] px-5 py-2">
-											<span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#2d5860]">Get started</span>
+											<span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#2d5860]">{t("navigation.getStarted")}</span>
 											<ArrowRight className="h-4 w-4 text-[#1f565f]" />
 										</div>
 									</div>

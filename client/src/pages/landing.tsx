@@ -15,49 +15,49 @@ import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 
-const quickStats = [
-  { label: "Documents checked", value: "12K+", icon: FileText },
-  { label: "Average response", value: "35s", icon: Clock3 },
-  { label: "Risk cues flagged", value: "94%", icon: TriangleAlert },
-];
-
-const workflow = [
-  {
-    title: "Drop your file",
-    detail: "Upload PDF, DOCX, or TXT and choose your summary depth.",
-  },
-  {
-    title: "AI scans structure",
-    detail: "Clauses, obligations, penalties, and exceptions are mapped in context.",
-  },
-  {
-    title: "Act with confidence",
-    detail: "Read clear recommendations before signing or negotiating.",
-  },
-];
-
-const featureBlocks = [
-  {
-    title: "Clause intelligence",
-    text: "Turns dense legal sections into plain-language summaries without losing key meaning.",
-    icon: ScanSearch,
-  },
-  {
-    title: "Risk heat map",
-    text: "Highlights high-risk wording and surfaces what you should challenge first.",
-    icon: AlertTriangle,
-  },
-  {
-    title: "Advice-ready outputs",
-    text: "Share concise reports with your advocate and speed up legal consultations.",
-    icon: ShieldCheck,
-  },
-];
-
 export default function Landing() {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [showDisclaimer, setShowDisclaimer] = useState(false);
+
+  const quickStats = [
+    { label: t("landing.quickStats.documentsChecked"), value: "12K+", icon: FileText },
+    { label: t("landing.quickStats.averageResponse"), value: "35s", icon: Clock3 },
+    { label: t("landing.quickStats.riskCuesFlagged"), value: "94%", icon: TriangleAlert },
+  ];
+
+  const workflow = [
+    {
+      title: t("landing.workflow.step1.title"),
+      detail: t("landing.workflow.step1.detail"),
+    },
+    {
+      title: t("landing.workflow.step2.title"),
+      detail: t("landing.workflow.step2.detail"),
+    },
+    {
+      title: t("landing.workflow.step3.title"),
+      detail: t("landing.workflow.step3.detail"),
+    },
+  ];
+
+  const featureBlocks = [
+    {
+      title: t("landing.features.card1.title"),
+      text: t("landing.features.card1.text"),
+      icon: ScanSearch,
+    },
+    {
+      title: t("landing.features.card2.title"),
+      text: t("landing.features.card2.text"),
+      icon: AlertTriangle,
+    },
+    {
+      title: t("landing.features.card3.title"),
+      text: t("landing.features.card3.text"),
+      icon: ShieldCheck,
+    },
+  ];
 
   const handleGetStarted = () => {
     setShowDisclaimer(true);
@@ -77,44 +77,43 @@ export default function Landing() {
           <div className="stagger-fade">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#1f383c]/15 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#2b4f55]">
               <Sparkles className="h-3.5 w-3.5" />
-              Legal reading, reimagined
+              {t("landing.hero.badge")}
             </div>
             <h1 className="font-display text-4xl font-semibold leading-[1.02] tracking-tight text-[#1b3338] sm:text-5xl lg:text-6xl">
-              Understand contracts
-              <span className="mt-2 block text-[#a24e2f]">before they understand you.</span>
+              {t("landing.hero.title")}
+              <span className="mt-2 block text-[#a24e2f]">{t("landing.hero.highlight")}</span>
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-[#355a60] sm:text-lg">
-              Nyayasetu AI turns legal complexity into clear action points. Upload any agreement,
-              detect hidden risk, and prepare better questions before you sign.
+              {t("landing.hero.description")}
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Button
                 onClick={handleGetStarted}
                 className="group h-12 rounded-full bg-[#1f565f] px-7 text-sm font-semibold text-[#f3fffb] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#173f46] hover:shadow-[0_10px_20px_rgba(23,63,70,0.28)]"
               >
-                Start free analysis
+                {t("landing.hero.cta")}
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
               </Button>
               <span className="text-sm font-medium text-[#486b71]">
-                No account needed for first scan
+                {t("landing.hero.subCta")}
               </span>
             </div>
           </div>
 
           <div className="stagger-fade rounded-3xl border border-[#1f4f57]/20 bg-[#1e4c54] p-5 text-[#ecfffa] shadow-[0_18px_40px_rgba(20,52,58,0.3)] sm:p-6">
             <div className="mb-4 flex items-center justify-between">
-              <p className="font-display text-lg">Why teams trust this</p>
+              <p className="font-display text-lg">{t("landing.trust.title")}</p>
               <Lock className="h-5 w-5 text-[#bdf2e0]" />
             </div>
             <div className="space-y-3">
               <div className="rounded-2xl border border-white/15 bg-white/10 p-4">
-                <p className="text-sm text-[#d6f8ef]">Privacy-first processing, built for sensitive legal language.</p>
+                <p className="text-sm text-[#d6f8ef]">{t("landing.trust.point1")}</p>
               </div>
               <div className="rounded-2xl border border-white/15 bg-white/10 p-4">
-                <p className="text-sm text-[#d6f8ef]">Structured highlights for obligations, penalties, and hidden clauses.</p>
+                <p className="text-sm text-[#d6f8ef]">{t("landing.trust.point2")}</p>
               </div>
               <div className="rounded-2xl border border-white/15 bg-white/10 p-4">
-                <p className="text-sm text-[#d6f8ef]">Useful for citizens, founders, and legal professionals alike.</p>
+                <p className="text-sm text-[#d6f8ef]">{t("landing.trust.point3")}</p>
               </div>
             </div>
           </div>
@@ -139,15 +138,15 @@ export default function Landing() {
         <section className="mx-auto mb-16 max-w-6xl rounded-3xl border border-[#1b3f45]/15 bg-white/75 p-6 backdrop-blur-sm sm:p-8 lg:p-10">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#547b82]">Workflow</p>
-              <h2 className="font-display mt-2 text-2xl font-semibold text-[#1f383c] sm:text-3xl">A clear path from upload to action</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#547b82]">{t("landing.workflow.label")}</p>
+              <h2 className="font-display mt-2 text-2xl font-semibold text-[#1f383c] sm:text-3xl">{t("landing.workflow.title")}</h2>
             </div>
             <Button
               onClick={handleGetStarted}
               variant="ghost"
               className="rounded-full border border-[#29545b]/25 px-5 text-[#20474e] hover:bg-[#e8f4f1]"
             >
-              Try it now
+              {t("landing.workflow.cta")}
             </Button>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -157,7 +156,7 @@ export default function Landing() {
                 className="stagger-fade rounded-2xl border border-[#234a51]/15 bg-[#f7fffc] p-5"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <p className="font-display text-sm uppercase tracking-[0.14em] text-[#4a7379]">Step {index + 1}</p>
+                <p className="font-display text-sm uppercase tracking-[0.14em] text-[#4a7379]">{t("landing.workflow.stepLabel", { number: index + 1 })}</p>
                 <h3 className="mt-2 text-lg font-semibold text-[#204349]">{step.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[#577a81]">{step.detail}</p>
               </div>
@@ -167,8 +166,8 @@ export default function Landing() {
 
         <section className="mx-auto mb-16 max-w-6xl">
           <div className="mb-7">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">Capabilities</p>
-            <h2 className="font-display mt-2 text-2xl font-semibold text-[#1f383c] sm:text-3xl">Designed for real legal decisions</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">{t("landing.features.label")}</p>
+            <h2 className="font-display mt-2 text-2xl font-semibold text-[#1f383c] sm:text-3xl">{t("landing.features.title")}</h2>
           </div>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             {featureBlocks.map(({ title, text, icon: Icon }, index) => (
@@ -190,20 +189,20 @@ export default function Landing() {
         <section className="mx-auto max-w-6xl rounded-3xl border border-[#1f444b]/20 bg-[#1f444b] p-7 text-[#ecfffa] sm:p-10">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
-              <h2 className="font-display text-3xl font-semibold sm:text-4xl">Read legal language like a professional.</h2>
+              <h2 className="font-display text-3xl font-semibold sm:text-4xl">{t("landing.cta.title")}</h2>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#d0f4ea] sm:text-base">
                 {t("home.security.subtitle")}
               </p>
               <div className="mt-5 flex items-center gap-2 text-sm text-[#b6e8da]">
                 <CheckCircle2 className="h-4 w-4" />
-                Data stays private and processing remains secure.
+                {t("landing.cta.subpoint")}
               </div>
             </div>
             <Button
               onClick={handleGetStarted}
               className="h-12 rounded-full bg-[#f6b26b] px-8 text-sm font-semibold text-[#492309] hover:bg-[#f3a453]"
             >
-              Get Started
+              {t("navigation.getStarted")}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -216,7 +215,7 @@ export default function Landing() {
             <button
               className="absolute right-4 top-4 text-2xl font-light text-[#6d8b90] transition-colors hover:text-[#2b4f55]"
               onClick={handleCloseDisclaimer}
-              aria-label="Close disclaimer"
+              aria-label={t("common.close")}
             >
               x
             </button>
@@ -248,7 +247,7 @@ export default function Landing() {
       <footer className="relative z-10 mt-16 border-t border-[#2a4d54]/20 bg-white/70 px-4 py-8 sm:px-6 lg:px-10">
         <div className="mx-auto max-w-6xl">
           <div className="text-center text-sm text-[#4d7076]">
-            <p>&copy; 2024 NyayaSetu AI. All rights reserved.</p>
+            <p>{t("home.footer.copyright")}</p>
           </div>
         </div>
       </footer>
