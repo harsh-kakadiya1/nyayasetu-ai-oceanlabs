@@ -4,8 +4,10 @@ import { Menu, ScanSearch, Scale, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LanguageSelector from "@/components/language-selector";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 
 export default function Navbar() {
+  const { t } = useTranslation();
   const [location] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, logout } = useAuth();
@@ -22,8 +24,8 @@ export default function Navbar() {
           <Scale className="h-4 w-4 text-[#e8fff7] sm:h-5 sm:w-5" />
             </div>
             <div className="flex flex-col justify-center">
-          <span className="font-display whitespace-nowrap text-base font-semibold leading-tight text-[#1f3c41] sm:text-lg">nyayasetu.ai</span>
-          <span className="-mt-1 hidden text-xs text-[#61868d] sm:block">Contract Intelligence Studio</span>
+          <span className="font-display whitespace-nowrap text-base font-semibold leading-tight text-[#1f3c41] sm:text-lg">{t("brand.name")}</span>
+          <span className="-mt-1 hidden text-xs text-[#61868d] sm:block">{t("brand.tagline")}</span>
             </div>
           </div>
 
@@ -35,7 +37,7 @@ export default function Navbar() {
             <span className={`whitespace-nowrap text-sm font-medium transition-colors lg:text-base ${
             location === "/" ? "text-[#1f4f57]" : "text-[#5f8187] hover:text-[#1f4f57]"
             }`}>
-                    Home
+                    {t("navigation.home", { defaultValue: "Home" })}
                   </span>
                 </div>
               </Link>
@@ -44,7 +46,7 @@ export default function Navbar() {
             <span className={`whitespace-nowrap text-sm font-medium transition-colors lg:text-base ${
             location === "/dashboard" ? "text-[#1f4f57]" : "text-[#5f8187] hover:text-[#1f4f57]"
             }`}>
-                    Dashboard
+                    {t("navigation.dashboard")}
                   </span>
                 </div>
               </Link>
@@ -78,7 +80,7 @@ export default function Navbar() {
           )}
           <div className="inline-flex items-center gap-2 rounded-full border border-[#2f5960]/20 bg-[#e9f7f2] px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#2d5960]">
           <ScanSearch className="h-3.5 w-3.5" />
-          AI Analyzer
+          {t("analysis.title")}
           </div>
             </div>
           </div>
@@ -105,12 +107,12 @@ export default function Navbar() {
         <div className="space-y-3 py-4">
               <Link href="/" onClick={() => setIsMenuOpen(false)}>
           <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
-                  Home
+                  {t("navigation.home", { defaultValue: "Home" })}
                 </div>
               </Link>
               <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>
           <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
-                  Dashboard
+                  {t("navigation.dashboard")}
                 </div>
               </Link>
             <div className="border-t border-[#2f5960]/20 pt-3">

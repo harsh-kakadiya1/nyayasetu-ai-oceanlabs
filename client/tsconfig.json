@@ -19,6 +19,7 @@
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
+    "types": ["vite/client", "react", "react-dom"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]

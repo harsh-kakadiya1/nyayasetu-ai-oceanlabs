@@ -92,14 +92,14 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
     ? analysis.summary.keyTerms
     : analysis.keyTerms;
   const documentTypeDisplay = (typeof analysis.summary === 'object' ? analysis.summary.documentType : null) || 
-                              document.documentType || "Legal Document";
+                              document.documentType || t("upload.documentType");
 
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Document Summary */}
       <div className="bg-card rounded-lg border border-border p-4 sm:p-6 analysis-card" data-testid="card-document-summary">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 gap-2">
-          <h3 className="text-base sm:text-lg font-semibold text-foreground" data-testid="text-summary-title">Document Summary</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-foreground" data-testid="text-summary-title">{t("analysis.summary")}</h3>
           <Badge variant="secondary" className="text-xs self-start sm:self-auto" data-testid="badge-document-type">
             {documentTypeDisplay}
           </Badge>
@@ -111,7 +111,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
           {summaryKeyTerms && Object.keys(summaryKeyTerms).length > 0 && (
             <div className="bg-accent/50 p-3 sm:p-4 rounded-md" data-testid="section-key-terms">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-sm sm:text-base text-foreground" data-testid="text-key-terms-title">Key Parties & Terms</h4>
+                <h4 className="font-medium text-sm sm:text-base text-foreground" data-testid="text-key-terms-title">{t("analysis.keyTerms")}</h4>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -201,7 +201,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
       {/* Key Clauses Analysis */}
       <div className="bg-card rounded-lg border border-border p-4 sm:p-6 analysis-card" data-testid="card-clauses-analysis">
         <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4" data-testid="text-clauses-title">
-          Key Clauses Breakdown
+          {t("analysis.clauses")}
         </h3>
         <div className="space-y-3 sm:space-y-4">
           {analysis.clauses && analysis.clauses.length > 0 ? (
@@ -347,7 +347,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
             ))
           ) : (
             <p className="text-muted-foreground text-center py-4" data-testid="text-no-clauses">
-              No specific clauses identified for detailed breakdown.
+              {t("risk.noRisks")}
             </p>
           )}
         </div>
@@ -359,7 +359,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
       {/* Action Recommendations */}
       <div className="bg-card rounded-lg border border-border p-4 sm:p-6 analysis-card" data-testid="card-recommendations">
         <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4" data-testid="text-recommendations-title">
-          Recommended Actions
+          {t("analysis.recommendations")}
         </h3>
         <div className="space-y-3 sm:space-y-4">
           {analysis.recommendations && analysis.recommendations.length > 0 ? (
@@ -386,7 +386,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
             ))
           ) : (
             <p className="text-sm text-muted-foreground text-center py-4" data-testid="text-no-recommendations">
-              No specific recommendations available for this document.
+              {t("risk.noRisks")}
             </p>
           )}
         </div>

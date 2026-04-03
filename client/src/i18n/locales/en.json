@@ -20,6 +20,7 @@
     "language": "Language"
   },
   "navigation": {
+    "home": "Home",
     "dashboard": "Dashboard",
     "history": "History",
     "settings": "Settings",
@@ -249,6 +250,65 @@
       "copyright": "© 2024 nyayasetu.ai. Built for hackathon demonstration.",
       "madeWith": "Made with AI for everyone",
       "securePrivate": "Secure & Private"
+    }
+  },
+  "landing": {
+    "hero": {
+      "badge": "Legal reading, reimagined",
+      "title": "Understand contracts",
+      "highlight": "before they understand you.",
+      "description": "Nyayasetu AI turns legal complexity into clear action points. Upload any agreement, detect hidden risk, and prepare better questions before you sign.",
+      "cta": "Start free analysis",
+      "subCta": "No account needed for first scan"
+    },
+    "trust": {
+      "title": "Why teams trust this",
+      "point1": "Privacy-first processing, built for sensitive legal language.",
+      "point2": "Structured highlights for obligations, penalties, and hidden clauses.",
+      "point3": "Useful for citizens, founders, and legal professionals alike."
+    },
+    "quickStats": {
+      "documentsChecked": "Documents checked",
+      "averageResponse": "Average response",
+      "riskCuesFlagged": "Risk cues flagged"
+    },
+    "workflow": {
+      "label": "Workflow",
+      "title": "A clear path from upload to action",
+      "cta": "Try it now",
+      "stepLabel": "Step {{number}}",
+      "step1": {
+        "title": "Drop your file",
+        "detail": "Upload PDF, DOCX, or TXT and choose your summary depth."
+      },
+      "step2": {
+        "title": "AI scans structure",
+        "detail": "Clauses, obligations, penalties, and exceptions are mapped in context."
+      },
+      "step3": {
+        "title": "Act with confidence",
+        "detail": "Read clear recommendations before signing or negotiating."
+      }
+    },
+    "features": {
+      "label": "Capabilities",
+      "title": "Designed for real legal decisions",
+      "card1": {
+        "title": "Clause intelligence",
+        "text": "Turns dense legal sections into plain-language summaries without losing key meaning."
+      },
+      "card2": {
+        "title": "Risk heat map",
+        "text": "Highlights high-risk wording and surfaces what you should challenge first."
+      },
+      "card3": {
+        "title": "Advice-ready outputs",
+        "text": "Share concise reports with your advocate and speed up legal consultations."
+      }
+    },
+    "cta": {
+      "title": "Read legal language like a professional.",
+      "subpoint": "Data stays private and processing remains secure."
     }
   }
 }

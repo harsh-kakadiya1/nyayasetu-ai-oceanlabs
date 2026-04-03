@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { API_ENDPOINTS } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 interface ChatMessage {
   id: string;
@@ -24,6 +25,7 @@ export default function QAChat({ analysisId, documentContent }: QAChatProps) {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   // Log the analysisId for debugging
@@ -69,14 +71,14 @@ export default function QAChat({ analysisId, documentContent }: QAChatProps) {
         refetch();
       }, 500);
       toast({
-        title: "Question answered",
-        description: "Your question has been answered successfully.",
+        title: t("common.success"),
+        description: t("chat.title"),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to answer question",
-        description: error.message,
+        title: t("chat.error"),
+        description: error.message || t("chat.error"),
         variant: "destructive",
       });
     },
@@ -114,14 +116,14 @@ export default function QAChat({ analysisId, documentContent }: QAChatProps) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="font-display text-base font-semibold sm:text-lg" data-testid="text-qa-title">
-              Ask Questions About This Document
+              {t("chat.title")}
             </h3>
             <p className="mt-1 text-sm text-[#cdeee4]">
-              Ask specific questions about terms, risks, or negotiation points.
+              {t("chat.placeholder")}
             </p>
           </div>
           <div className="hidden rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#d9f7ef] sm:block">
-            AI Chat
+            {t("chat.title")}
           </div>
         </div>
       </header>
@@ -165,10 +167,10 @@ export default function QAChat({ analysisId, documentContent }: QAChatProps) {
             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#2f5960]/25 bg-white px-6 py-10 text-center">
               <MessageCircle className="mb-3 h-8 w-8 text-[#5f848a]" />
               <p className="text-sm font-medium text-[#2a5259]" data-testid="text-no-messages">
-                Start a conversation about this document.
+                {t("chat.noDocument")}
               </p>
               <p className="mt-1 text-xs text-[#668b91]">
-                Example: "What are the biggest risks before signing?"
+                {t("chat.placeholder")}
               </p>
             </div>
           )}
@@ -191,7 +193,7 @@ export default function QAChat({ analysisId, documentContent }: QAChatProps) {
                         <div></div>
                         <div></div>
                       </div>
-                      <p className="text-sm text-[#5c8087]">Analyzing your question...</p>
+                      <p className="text-sm text-[#5c8087]">{t("chat.thinking")}</p>
                     </div>
                   </div>
                 </div>
@@ -206,7 +208,7 @@ export default function QAChat({ analysisId, documentContent }: QAChatProps) {
       <form onSubmit={handleSubmit} className="border-t border-[#275158]/12 bg-white p-3 sm:p-4 flex-shrink-0" data-testid="form-chat-input">
         <div className="flex items-center gap-3">
           <Input
-            placeholder="Ask a question about this document..."
+            placeholder={t("chat.placeholder")}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             disabled={askQuestionMutation.isPending}
@@ -223,7 +225,7 @@ export default function QAChat({ analysisId, documentContent }: QAChatProps) {
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        <p className="mt-2 text-xs text-[#76989e]">Press Enter or click send button. Keep questions short and specific for best results.</p>
+        <p className="mt-2 text-xs text-[#76989e]">{t("chat.send")}</p>
       </form>
     </section>
   );
