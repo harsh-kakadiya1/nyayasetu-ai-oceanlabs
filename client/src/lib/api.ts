@@ -23,6 +23,9 @@ export const API_ENDPOINTS = {
   },
   history: `${API_BASE_URL}/api/history`,
   historyItem: (analysisId: string) => `${API_BASE_URL}/api/history/${encodeURIComponent(analysisId)}`,
+  subscription: {
+    activate: `${API_BASE_URL}/api/subscription/activate`,
+  },
 };
 
 export default API_ENDPOINTS;

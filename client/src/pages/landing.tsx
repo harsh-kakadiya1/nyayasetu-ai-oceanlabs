@@ -20,6 +20,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Accordion,
   AccordionContent,
@@ -31,8 +33,12 @@ import StatsCounter from "@/components/stats-counter";
 
 export default function Landing() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [selectedPaidPlan, setSelectedPaidPlan] = useState<"professional" | "enterprise" | null>(null);
+  const [activatingPaidPlan, setActivatingPaidPlan] = useState(false);
+  const { user, activatePlan } = useAuth();
 
   const quickStats = [
     { label: t("landing.quickStats.documentsChecked"), value: "12K+", icon: FileText },
@@ -75,6 +81,7 @@ export default function Landing() {
 
   const pricingPlans = [
     {
+      key: "starter" as const,
       name: t("landing.pricing.plans.starter.name"),
       description: t("landing.pricing.plans.starter.description"),
       price: t("landing.pricing.plans.starter.price"),
@@ -89,6 +96,7 @@ export default function Landing() {
       highlighted: false,
     },
     {
+      key: "professional" as const,
       name: t("landing.pricing.plans.professional.name"),
       description: t("landing.pricing.plans.professional.description"),
       price: t("landing.pricing.plans.professional.price"),
@@ -105,6 +113,7 @@ export default function Landing() {
       highlighted: true,
     },
     {
+      key: "enterprise" as const,
       name: t("landing.pricing.plans.enterprise.name"),
       description: t("landing.pricing.plans.enterprise.description"),
       price: t("landing.pricing.plans.enterprise.price"),
@@ -153,6 +162,75 @@ export default function Landing() {
   const handleCloseDisclaimer = () => {
     setShowDisclaimer(false);
     setLocation("/dashboard");
+  };
+
+  const handlePlanSelect = async (plan: "starter" | "professional" | "enterprise") => {
+    if (!user) {
+      setLocation("/login");
+      return;
+    }
+
+    if (plan !== "starter") {
+      setSelectedPaidPlan(plan);
+      setTimeout(() => {
+        document.getElementById("payment")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 20);
+      return;
+    }
+
+    const result = await activatePlan(plan, { paymentConfirmed: true });
+    if (!result.ok) {
+      toast({
+        title: "Plan activation failed",
+        description: result.error || "Please try again",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Plan activated",
+      description: `Your ${plan} plan is now active`,
+    });
+    setLocation("/dashboard");
+  };
+
+  const handleActivatePaidPlan = async () => {
+    if (!selectedPaidPlan) {
+      toast({
+        title: "Select a paid plan",
+        description: "Choose Professional or Enterprise from pricing first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      setLocation("/login");
+      return;
+    }
+
+    try {
+      setActivatingPaidPlan(true);
+      const result = await activatePlan(selectedPaidPlan, { paymentConfirmed: true });
+
+      if (!result.ok) {
+        toast({
+          title: "Payment activation failed",
+          description: result.error || "Please try again",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Payment successful",
+        description: `${selectedPaidPlan} plan activated successfully.`,
+      });
+      setLocation("/dashboard");
+    } finally {
+      setActivatingPaidPlan(false);
+    }
   };
 
   return (
@@ -260,7 +338,7 @@ export default function Landing() {
                   ))}
                 </ul>
                 <Button
-                  onClick={handleGetStarted}
+                  onClick={() => handlePlanSelect(plan.key)}
                   className={`w-full min-w-[180px] rounded-full font-semibold transition-all duration-300 mt-auto ${
                     plan.highlighted
                       ? "bg-[#f6b26b] text-[#492309] hover:bg-[#f3a453]"
@@ -274,6 +352,31 @@ export default function Landing() {
           </div>
         </section>
 
+        <section id="payment" className="mx-auto mb-16 max-w-4xl scroll-mt-24 rounded-3xl border border-[#1f565f]/20 bg-white/85 p-6 sm:p-8">
+          <div className="mb-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">Payment</p>
+            <h3 className="font-display mt-2 text-2xl font-semibold text-[#1f383c]">Activate Paid Plan</h3>
+            <p className="mt-2 text-sm text-[#567a80]">
+              Paid plans cannot be activated directly from pricing. Complete payment here to activate your subscription.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-[#2d575e]/15 bg-[#f7fbf9] p-4">
+            <p className="text-sm text-[#315b61]">
+              Selected plan: <span className="font-semibold text-[#1f565f]">{selectedPaidPlan ? selectedPaidPlan : "None selected"}</span>
+            </p>
+            <p className="mt-1 text-xs text-[#6d8d92]">For hackathon demo, this simulates a successful payment confirmation.</p>
+          </div>
+
+          <Button
+            onClick={handleActivatePaidPlan}
+            disabled={!selectedPaidPlan || activatingPaidPlan}
+            className="mt-4 w-full rounded-full bg-[#1f565f] text-white hover:bg-[#173f46] disabled:opacity-60"
+          >
+            {activatingPaidPlan ? "Processing payment..." : "Proceed to payment and activate"}
+          </Button>
+        </section>
+
 
         <section id="faqs" className="mx-auto mb-16 max-w-6xl scroll-mt-24">
           <div className="mb-7 text-center">
@@ -284,12 +387,12 @@ export default function Landing() {
             <Accordion type="single" collapsible className="w-full">
               {faqs.map((faq, index) => (
                 <AccordionItem key={index} value={`item-${index}`} className="border-[#1c434a]/10">
-                  <AccordionTrigger className="text-left text-base font-medium text-[#1f3c41] hover:no-underline">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-sm leading-relaxed text-[#567a80]">
-                    {faq.answer}
-                  </AccordionContent>
+                  <div className="text-left text-base font-medium text-[#1f3c41] [&_[data-state=open]]:no-underline">
+                    <AccordionTrigger>{faq.question}</AccordionTrigger>
+                  </div>
+                  <div className="text-sm leading-relaxed text-[#567a80]">
+                    <AccordionContent>{faq.answer}</AccordionContent>
+                  </div>
                 </AccordionItem>
               ))}
             </Accordion>

@@ -1,11 +1,13 @@
 import { type User, type InsertUser, type Document, type InsertDocument, type Analysis, type InsertAnalysis, type ChatMessage, type InsertChatMessage } from "./schema.js";
 import { randomUUID } from "crypto";
+import { normalizeEmailIdentifier } from "./emailUtils.js";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUsername(userId: string, username: string): Promise<User | undefined>;
+  updateUserPlan(userId: string, plan: "starter" | "professional" | "enterprise", tokens: number): Promise<User | undefined>;
   consumeUserToken(userId: string): Promise<number | null>;
   addUserTokens(userId: string, amount: number): Promise<number | null>;
   
@@ -41,14 +43,21 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
+    const normalizedUsername = normalizeEmailIdentifier(username);
     return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+      (user) => user.username.toLowerCase() === normalizedUsername,
     );
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id, tokens: insertUser.tokens ?? 3 };
+    const user: User = {
+      ...insertUser,
+      username: normalizeEmailIdentifier(insertUser.username),
+      id,
+      tokens: insertUser.tokens ?? 3,
+      plan: insertUser.plan ?? "starter",
+    };
     this.users.set(id, user);
     return user;
   }
@@ -57,15 +66,30 @@ export class MemStorage implements IStorage {
     const user = this.users.get(userId);
     if (!user) return undefined;
 
+    const normalizedUsername = normalizeEmailIdentifier(username);
+
     const usernameTaken = Array.from(this.users.values()).some(
-      (existing) => existing.username === username && existing.id !== userId,
+      (existing) => existing.username.toLowerCase() === normalizedUsername && existing.id !== userId,
     );
 
     if (usernameTaken) {
       throw new Error("Username already exists");
     }
 
-    const updatedUser: User = { ...user, username };
+    const updatedUser: User = { ...user, username: normalizedUsername };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+
+  async updateUserPlan(userId: string, plan: "starter" | "professional" | "enterprise", tokens: number): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+
+    const updatedUser: User = {
+      ...user,
+      plan,
+      tokens,
+    };
     this.users.set(userId, updatedUser);
     return updatedUser;
   }

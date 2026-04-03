@@ -10,6 +10,7 @@ import {
   type ChatMessage,
   type InsertChatMessage,
 } from "./schema.js";
+import { normalizeEmailIdentifier } from "./emailUtils.js";
 
 let pool: pg.Pool | null = null;
 let setupPromise: Promise<void> | null = null;
@@ -42,13 +43,19 @@ async function ensureTables() {
           id TEXT PRIMARY KEY,
           username TEXT UNIQUE NOT NULL,
           password TEXT NOT NULL,
-          tokens INTEGER NOT NULL DEFAULT 3
+          tokens INTEGER NOT NULL DEFAULT 3,
+          plan TEXT NOT NULL DEFAULT 'starter'
         )
       `);
 
       await db.query(`
         ALTER TABLE users
         ADD COLUMN IF NOT EXISTS tokens INTEGER NOT NULL DEFAULT 3
+      `);
+
+      await db.query(`
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS plan TEXT NOT NULL DEFAULT 'starter'
       `);
 
       await db.query(`
@@ -109,9 +116,16 @@ export class DbStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     await ensureTables();
     const id = randomUUID();
+    const normalizedUsername = normalizeEmailIdentifier(insertUser.username);
+
+    const existingUser = await this.getUserByUsername(normalizedUsername);
+    if (existingUser) {
+      throw new Error("Username already exists");
+    }
+
     const result = await getPool().query<User>(
-      `INSERT INTO users (id, username, password, tokens) VALUES ($1, $2, $3, $4) RETURNING id, username, password, tokens`,
-      [id, insertUser.username, insertUser.password, insertUser.tokens ?? 3],
+      `INSERT INTO users (id, username, password, tokens, plan) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, password, tokens, plan`,
+      [id, normalizedUsername, insertUser.password, insertUser.tokens ?? 3, insertUser.plan ?? "starter"],
     );
     return result.rows[0];
   }
@@ -119,14 +133,21 @@ export class DbStorage {
   async updateUsername(userId: string, username: string): Promise<User | undefined> {
     await ensureTables();
     try {
+      const normalizedUsername = normalizeEmailIdentifier(username);
+
+      const existingUser = await this.getUserByUsername(normalizedUsername);
+      if (existingUser && existingUser.id !== userId) {
+        throw new Error("Username already exists");
+      }
+
       const result = await getPool().query<User>(
         `
         UPDATE users
         SET username = $2
         WHERE id = $1
-        RETURNING id, username, password, tokens
+        RETURNING id, username, password, tokens, plan
         `,
-        [userId, username],
+        [userId, normalizedUsername],
       );
       return result.rows[0];
     } catch (error: any) {
@@ -139,19 +160,35 @@ export class DbStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     await ensureTables();
+    const normalizedUsername = normalizeEmailIdentifier(username);
     const result = await getPool().query<User>(
-      `SELECT id, username, password, tokens FROM users WHERE username = $1 LIMIT 1`,
-      [username],
+      `SELECT id, username, password, tokens, plan FROM users`,
     );
-    return result.rows[0];
+
+    return result.rows.find((user) => normalizeEmailIdentifier(user.username) === normalizedUsername);
   }
 
   async getUser(id: string): Promise<User | undefined> {
     await ensureTables();
     const result = await getPool().query<User>(
-      `SELECT id, username, password, tokens FROM users WHERE id = $1 LIMIT 1`,
+      `SELECT id, username, password, tokens, plan FROM users WHERE id = $1 LIMIT 1`,
       [id],
     );
+    return result.rows[0];
+  }
+
+  async updateUserPlan(userId: string, plan: "starter" | "professional" | "enterprise", tokens: number): Promise<User | undefined> {
+    await ensureTables();
+    const result = await getPool().query<User>(
+      `
+      UPDATE users
+      SET plan = $2, tokens = $3
+      WHERE id = $1
+      RETURNING id, username, password, tokens, plan
+      `,
+      [userId, plan, tokens],
+    );
+
     return result.rows[0];
   }
 

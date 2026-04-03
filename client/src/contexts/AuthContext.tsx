@@ -5,6 +5,7 @@ interface User {
   id: string;
   username: string;
   tokens: number;
+  plan?: "starter" | "professional" | "enterprise";
 }
 
 interface AuthContextType {
@@ -15,8 +16,12 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateProfile: (username: string) => Promise<{ ok: boolean; error?: string }>;
   updateTokens: (tokens: number) => void;
+  activatePlan: (
+    plan: "starter" | "professional" | "enterprise",
+    options?: { paymentConfirmed?: boolean },
+  ) => Promise<{ ok: boolean; error?: string; code?: string }>;
   checkAuth: () => Promise<void>;
-  googleLogin: () => void;
+  googleLogin: (intent?: "login" | "signup") => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -119,10 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const googleLogin = () => {
+  const googleLogin = (intent: "login" | "signup" = "login") => {
     // Redirect to the Google OAuth endpoint on the backend
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-    window.location.href = `${apiUrl}/api/auth/google`;
+    window.location.href = `${apiUrl}/api/auth/google?intent=${encodeURIComponent(intent)}`;
   };
 
   const updateTokens = (tokens: number) => {
@@ -136,6 +141,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         tokens,
       };
     });
+  };
+
+  const activatePlan = async (
+    plan: "starter" | "professional" | "enterprise",
+    options?: { paymentConfirmed?: boolean },
+  ) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.subscription.activate, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ plan, paymentConfirmed: options?.paymentConfirmed ?? false }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: "Failed to activate plan" }));
+        return { ok: false, error: data.error || "Failed to activate plan", code: data.code };
+      }
+
+      const data = await response.json();
+      setUser(data.user);
+      return { ok: true };
+    } catch {
+      return { ok: false, error: "Network error while activating plan", code: "NETWORK_ERROR" };
+    }
   };
 
   useEffect(() => {
@@ -153,6 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         updateProfile,
         updateTokens,
+        activatePlan,
         checkAuth,
       }}
     >

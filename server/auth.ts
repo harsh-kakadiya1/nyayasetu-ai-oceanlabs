@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import pg from "pg";
+import { normalizeEmailIdentifier } from "./emailUtils.js";
 
 const PgSessionStore = connectPgSimple(session);
 
@@ -66,7 +67,7 @@ export async function setupAuth(app: any) {
 
   passport.use(new LocalStrategy(async (username, password, done) => {
     try {
-      const user = await storage.getUserByUsername(username);
+      const user = await storage.getUserByUsername(normalizeEmailIdentifier(username));
       if (!user) {
         return done(null, false, { message: "Incorrect username." });
       }
@@ -90,23 +91,36 @@ export async function setupAuth(app: any) {
       callbackURL: process.env.GOOGLE_CALLBACK_URL || "/api/auth/google/callback",
     }, async (accessToken, refreshToken, profile, done) => {
       try {
-        const email = profile.emails?.[0]?.value;
+        const email = normalizeEmailIdentifier(profile.emails?.[0]?.value || "");
         if (!email) {
           return done(null, false, { message: "No email from Google profile" });
         }
 
         // Check if user exists by email
         let user = await storage.getUserByUsername(email);
+        let accountStatus: "existing" | "created" = "existing";
         
         if (!user) {
           // Create new user with a random password (Google auth doesn't need it)
           const randomPassword = await bcrypt.hash(Math.random().toString(36), 10);
-          user = await storage.createUser({
-            username: email,
-            password: randomPassword,
-          });
+          try {
+            user = await storage.createUser({
+              username: email,
+              password: randomPassword,
+            });
+            accountStatus = "created";
+          } catch (error) {
+            // If another request created the account first, reuse it instead of duplicating.
+            user = await storage.getUserByUsername(email);
+            if (!user) {
+              throw error;
+            }
+            accountStatus = "existing";
+          }
           console.log(`[AUTH] New Google user created: ${email}`);
         }
+
+        (user as any).__oauthAccountStatus = accountStatus;
 
         return done(null, user);
       } catch (error) {

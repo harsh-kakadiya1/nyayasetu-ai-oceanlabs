@@ -66,6 +66,13 @@ export default function Navbar() {
     .join("")
     .slice(0, 2);
 
+  const currentPlanLabel = (() => {
+    const plan = user?.plan || "starter";
+    if (plan === "professional") return "Professional";
+    if (plan === "enterprise") return "Enterprise";
+    return "Starter";
+  })();
+
   const handleProfileSave = async () => {
     const nextName = profileName.trim();
     if (nextName.length < 3) {
@@ -207,8 +214,13 @@ export default function Navbar() {
                         {initials}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="text-sm font-semibold tracking-wide">{user.username}</p>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-semibold tracking-wide">{user.username}</p>
+                        <span className="rounded-full border border-[#ffffff1f] bg-[#ffffff10] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#d5e3e6]">
+                          {currentPlanLabel}
+                        </span>
+                      </div>
                       <p className="text-xs text-[#b6c3c6]">nyayasetu.ai</p>
                     </div>
                   </div>
@@ -245,9 +257,7 @@ export default function Navbar() {
 
                   <button
                     type="button"
-                    onClick={() =>
-                      toast({ title: t("navbar.upgradePlan"), description: t("navbar.pricingComingSoon") })
-                    }
+                    onClick={() => scrollToLandingSection("pricing")}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] transition-colors hover:bg-[#ffffff12]"
                   >
                     <Crown className="h-4 w-4" />
@@ -268,6 +278,10 @@ export default function Navbar() {
 
                   {isSettingsOpen && (
                     <div className="space-y-2 rounded-lg border border-[#ffffff18] bg-[#ffffff08] p-3 text-sm">
+                      <div className="rounded-md border border-[#ffffff22] bg-[#1f565f33] px-3 py-2">
+                        <p className="text-xs uppercase tracking-[0.08em] text-[#b8d5da]">Current plan</p>
+                        <p className="mt-1 text-base font-semibold text-white">{currentPlanLabel}</p>
+                      </div>
                       <div className="rounded-md border border-[#ffffff22] bg-[#1f565f33] px-3 py-2">
                         <p className="text-xs uppercase tracking-[0.08em] text-[#b8d5da]">{t("navbar.freeTokens")}</p>
                         <p className="mt-1 text-base font-semibold text-white">{user.tokens}</p>

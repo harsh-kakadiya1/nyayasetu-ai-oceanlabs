@@ -79,6 +79,31 @@ export default function Dashboard() {
 	}, []);
 
 	useEffect(() => {
+		const params = new URLSearchParams(window.location.search);
+		const oauth = params.get("oauth");
+
+		if (oauth === "existing-account") {
+			toast({
+				title: "Account already exists",
+				description: "You were signed in with your existing Google account.",
+			});
+		} else if (oauth === "account-created") {
+			toast({
+				title: "Google account linked",
+				description: "Your account was created successfully.",
+			});
+		}
+
+		if (oauth) {
+			params.delete("oauth");
+			params.delete("auth");
+			const nextSearch = params.toString();
+			const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`;
+			window.history.replaceState({}, "", nextUrl);
+		}
+	}, [toast]);
+
+	useEffect(() => {
 		const handleHistoryCleared = () => {
 			setAnalyses([]);
 			setSelectedHistoryItem(null);

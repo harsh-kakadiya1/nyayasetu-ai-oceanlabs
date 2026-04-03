@@ -189,7 +189,7 @@ export default function Login() {
             type="button"
             variant="outline"
             className="w-full border-[#2d575e]/20"
-            onClick={googleLogin}
+            onClick={() => googleLogin(isSignupMode ? "signup" : "login")}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path

@@ -9,6 +9,7 @@ import path from "path";
 import passport from "passport";
 import bcrypt from "bcrypt";
 import { requireAuth } from "./auth.js";
+import { normalizeEmailIdentifier } from "./emailUtils.js";
 
 // Configure multer for file uploads (memory storage - no files saved to disk)
 const upload = multer({
@@ -39,7 +40,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post(["/api/auth/register", "/api/auth-register"], async (req, res) => {
     try {
-      const { username, password } = req.body;
+      const username = normalizeEmailIdentifier(String(req.body?.username || ""));
+      const password = String(req.body?.password || "");
 
       if (!username || !password) {
         return res.status(400).json({ error: "Username and password are required" });
@@ -53,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await storage.createUser({ username, password: hashedPassword });
 
-      res.json({ id: user.id, username: user.username, tokens: user.tokens });
+      res.json({ id: user.id, username: user.username, tokens: user.tokens, plan: user.plan });
     } catch (error) {
       console.error("Registration error:", error);
       res.status(500).json({ error: "Failed to register user" });
@@ -75,7 +77,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ error: "Failed to establish session" });
         }
 
-        res.json({ id: user.id, username: user.username, tokens: user.tokens });
+        res.json({ id: user.id, username: user.username, tokens: user.tokens, plan: user.plan });
       });
     })(req, res, next);
   });
@@ -91,7 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get(["/api/auth/me", "/api/auth-me"], (req, res) => {
     if (req.isAuthenticated()) {
-      return res.json({ id: req.user.id, username: req.user.username, tokens: req.user.tokens });
+      return res.json({ id: req.user.id, username: req.user.username, tokens: req.user.tokens, plan: req.user.plan });
     }
 
     return res.status(401).json({ error: "Not authenticated" });
@@ -99,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch(["/api/auth/profile", "/api/auth-profile"], requireAuth, async (req, res) => {
     try {
-      const username = String(req.body?.username || "").trim();
+      const username = normalizeEmailIdentifier(String(req.body?.username || ""));
 
       if (!username || username.length < 3) {
         return res.status(400).json({ error: "Username must be at least 3 characters" });
@@ -111,7 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "User not found" });
       }
 
-      res.json({ id: updatedUser.id, username: updatedUser.username, tokens: updatedUser.tokens });
+      res.json({ id: updatedUser.id, username: updatedUser.username, tokens: updatedUser.tokens, plan: updatedUser.plan });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to update profile";
       if (message.includes("already exists")) {
@@ -122,7 +124,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Google OAuth Routes
-  app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+  app.get("/api/auth/google", (req, res, next) => {
+    const rawIntent = String(req.query.intent || "login").toLowerCase();
+    const intent = rawIntent === "signup" ? "signup" : "login";
+    passport.authenticate("google", { scope: ["profile", "email"], state: intent })(req, res, next);
+  });
 
   app.get("/api/auth/google/callback", (req, res, next) => {
     passport.authenticate("google", (err: any, user: any, info: any) => {
@@ -144,7 +150,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Redirect to frontend with success
         const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-        res.redirect(`${frontendUrl}/dashboard?auth=success`);
+        const intent = String(req.query.state || "login").toLowerCase() === "signup" ? "signup" : "login";
+        const oauthStatus = (user as any)?.__oauthAccountStatus || "existing";
+        const oauthNotice = intent === "signup" && oauthStatus === "existing"
+          ? "existing-account"
+          : oauthStatus === "created"
+            ? "account-created"
+            : "signed-in";
+
+        res.redirect(`${frontendUrl}/dashboard?auth=success&oauth=${oauthNotice}`);
       });
     })(req, res, next);
   });
@@ -503,6 +517,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("[HISTORY] Delete item error:", error);
       res.status(500).json({ error: "Failed to delete history item" });
+    }
+  });
+
+  app.post("/api/subscription/activate", requireAuth, async (req, res) => {
+    try {
+      const requestedPlan = String(req.body?.plan || "").toLowerCase();
+      const paymentConfirmed = Boolean(req.body?.paymentConfirmed);
+      const allowedPlans = ["starter", "professional", "enterprise"] as const;
+
+      if (!allowedPlans.includes(requestedPlan as any)) {
+        return res.status(400).json({ error: "Invalid plan" });
+      }
+
+      const tokensByPlan: Record<(typeof allowedPlans)[number], number> = {
+        starter: 3,
+        professional: 50,
+        enterprise: 200,
+      };
+
+      const plan = requestedPlan as (typeof allowedPlans)[number];
+
+      if (plan !== "starter" && !paymentConfirmed) {
+        return res.status(402).json({
+          error: "Payment required for this plan",
+          code: "PAYMENT_REQUIRED",
+          plan,
+          paymentSection: "#payment",
+        });
+      }
+
+      const updated = await storage.updateUserPlan(req.user.id, plan, tokensByPlan[plan]);
+
+      if (!updated) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      return res.json({
+        success: true,
+        user: {
+          id: updated.id,
+          username: updated.username,
+          tokens: updated.tokens,
+          plan: updated.plan,
+        },
+      });
+    } catch (error) {
+      console.error("[SUBSCRIPTION] Activate plan error:", error);
+      return res.status(500).json({ error: "Failed to activate plan" });
     }
   });
 
