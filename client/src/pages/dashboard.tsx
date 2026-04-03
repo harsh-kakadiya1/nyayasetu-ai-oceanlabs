@@ -62,6 +62,19 @@ export default function Dashboard() {
 	const [modalOpen, setModalOpen] = useState(false);
 
 	useEffect(() => {
+		const previousBodyOverflow = document.body.style.overflow;
+		const previousHtmlOverflow = document.documentElement.style.overflow;
+
+		document.body.style.overflow = "hidden";
+		document.documentElement.style.overflow = "hidden";
+
+		return () => {
+			document.body.style.overflow = previousBodyOverflow;
+			document.documentElement.style.overflow = previousHtmlOverflow;
+		};
+	}, []);
+
+	useEffect(() => {
 		fetchHistory();
 	}, []);
 
@@ -187,20 +200,20 @@ export default function Dashboard() {
 	];
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-[#f8f4ea] via-[#edf4f1] to-[#f4f8f7]">
-			<div className={`flex h-screen transition-all duration-300 ${sidebarOpen ? '' : 'pl-0'}`}>
+		<div className="h-[calc(100dvh-68px)] overflow-hidden bg-gradient-to-br from-[#f8f4ea] via-[#edf4f1] to-[#f4f8f7]">
+			<div className={`flex h-full overflow-hidden transition-all duration-300 ${sidebarOpen ? '' : 'pl-0'}`}>
 				{/* Sidebar Toggle Button (when closed) */}
 				{!sidebarOpen && (
 					<button
 						onClick={() => setSidebarOpen(true)}
-						className="fixed left-4 top-4 z-50 w-10 h-10 rounded-lg bg-[#1f565f] text-white flex items-center justify-center shadow-lg hover:bg-[#173f46] transition-colors"
+						className="fixed left-4 top-20 z-50 w-10 h-10 rounded-lg bg-[#1f565f] text-white flex items-center justify-center shadow-lg hover:bg-[#173f46] transition-colors"
 					>
 						<History className="h-5 w-5" />
 					</button>
 				)}
 
 				{/* Left Sidebar - History - Sticky */}
-				<aside className={`${sidebarOpen ? 'w-72' : 'w-0'} sticky top-0 h-screen flex-shrink-0 border-r border-[#2d575e]/15 bg-white/80 backdrop-blur-sm flex flex-col transition-all duration-300 overflow-hidden`}>
+				<aside className={`${sidebarOpen ? 'w-72' : 'w-0'} flex h-full flex-shrink-0 flex-col overflow-hidden border-r border-[#2d575e]/15 bg-white/80 backdrop-blur-sm transition-all duration-300`}>
 					{/* Sidebar Header with Toggle */}
 					<div className="p-3 border-b border-[#2d575e]/10 flex items-center justify-between">
 						<div className="flex items-center gap-2">
@@ -273,8 +286,8 @@ export default function Dashboard() {
 					</aside>
 
 				{/* Main Content Area */}
-				<main className="flex-1 overflow-y-auto">
-					<div className="max-w-5xl mx-auto p-6 lg:p-8">
+				<main className="flex-1 h-full overflow-y-auto">
+					<div className="mx-auto max-w-5xl p-6 lg:p-8">
 						{/* Header */}
 						<div className="mb-6">
 							<h1 className="font-display text-2xl font-semibold text-[#1d3b40]">
