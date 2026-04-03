@@ -85,7 +85,7 @@ export default function Landing() {
         "Standard response time",
         "No credit card required",
       ],
-      cta: "Get Started",
+      cta: "Start Free Trial",
       highlighted: false,
     },
     {
@@ -101,7 +101,7 @@ export default function Landing() {
         "Custom risk thresholds",
         "Batch processing",
       ],
-      cta: "Start Free Trial",
+      cta: "Get Started",
       highlighted: true,
     },
     {
@@ -122,42 +122,6 @@ export default function Landing() {
     },
   ];
 
-  const integrations = [
-    { name: "Google Drive", icon: "🔗" },
-    { name: "Slack", icon: "💬" },
-    { name: "Microsoft Teams", icon: "👥" },
-    { name: "Notion", icon: "📝" },
-    { name: "Zapier", icon: "⚡" },
-    { name: "REST API", icon: "🔌" },
-  ];
-
-  const testimonials = [
-    {
-      name: "Priya Sharma",
-      role: "Legal Consultant",
-      text: "Nyayasetu AI has transformed how I review contracts. It saves me hours every week.",
-      rating: 5,
-    },
-    {
-      name: "Rajesh Kumar",
-      role: "Corporate Lawyer",
-      text: "The accuracy of risk detection is impressive. A must-have tool for modern legal practice.",
-      rating: 5,
-    },
-    {
-      name: "Neha Patel",
-      role: "Startup Founder",
-      text: "As a non-lawyer, this tool gives me confidence reviewing agreements. Highly recommended!",
-      rating: 5,
-    },
-  ];
-
-  const securityFeatures = [
-    { label: "Bank-Level Encryption", icon: Lock },
-    { label: "ISO 27001 Certified", icon: Shield },
-    { label: "GDPR Compliant", icon: Zap },
-    { label: "Zero-Knowledge Architecture", icon: Globe },
-  ];
 
   const faqs = [
     {
@@ -268,11 +232,11 @@ export default function Landing() {
             <h2 className="font-display mt-2 text-3xl font-semibold text-[#1f383c] sm:text-4xl">Simple, Transparent Pricing</h2>
             <p className="mt-3 text-base text-[#567a80]">Choose the plan that fits your needs</p>
           </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 items-stretch">
             {pricingPlans.map((plan, index) => (
               <div
                 key={plan.name}
-                className={`stagger-fade rounded-3xl border p-7 transition-all duration-300 ${
+                className={`stagger-fade rounded-3xl border p-7 transition-all duration-300 flex flex-col ${
                   plan.highlighted
                     ? "border-[#1f565f] bg-[#1f565f] text-white shadow-[0_20px_40px_rgba(31,86,95,0.25)] md:scale-105"
                     : "border-[#1c434a]/12 bg-white shadow-[0_12px_24px_rgba(26,55,61,0.08)] hover:shadow-[0_20px_40px_rgba(26,55,61,0.15)] hover:-translate-y-1"
@@ -297,7 +261,7 @@ export default function Landing() {
                 </ul>
                 <Button
                   onClick={handleGetStarted}
-                  className={`w-full rounded-full font-semibold transition-all duration-300 ${
+                  className={`w-full min-w-[180px] rounded-full font-semibold transition-all duration-300 mt-auto ${
                     plan.highlighted
                       ? "bg-[#f6b26b] text-[#492309] hover:bg-[#f3a453]"
                       : "bg-[#1f565f] text-white hover:bg-[#173f46]"
@@ -310,77 +274,6 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="mx-auto mb-16 max-w-6xl rounded-3xl border border-[#1c434a]/15 bg-gradient-to-br from-[#f9f5eb]/50 to-white p-10">
-          <div className="mb-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">Integrations</p>
-            <h2 className="font-display mt-2 text-3xl font-semibold text-[#1f383c]">Works with tools you love</h2>
-          </div>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-            {integrations.map((integration) => (
-              <div
-                key={integration.name}
-                className="stagger-fade group flex flex-col items-center justify-center rounded-2xl border border-[#1c434a]/12 bg-white p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-              >
-                <span className="text-4xl mb-3 group-hover:scale-125 transition-transform duration-300">{integration.icon}</span>
-                <span className="text-center text-sm font-medium text-[#567a80]">{integration.name}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="mx-auto mb-16 max-w-6xl">
-          <div className="mb-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">Testimonials</p>
-            <h2 className="font-display mt-2 text-3xl font-semibold text-[#1f383c]">Trusted by legal professionals</h2>
-          </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="stagger-fade rounded-2xl border border-[#1c434a]/12 bg-white p-6 shadow-[0_12px_24px_rgba(26,55,61,0.08)]"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="flex gap-1 mb-4">
-                  {Array(testimonial.rating)
-                    .fill(0)
-                    .map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-[#f6b26b] text-[#f6b26b]" />
-                    ))}
-                </div>
-                <p className="text-sm leading-relaxed text-[#567a80] mb-4">"{testimonial.text}"</p>
-                <div className="flex items-center gap-3 border-t border-[#1c434a]/10 pt-4">
-                  <div className="h-10 w-10 rounded-full bg-[#e8f7f2]" />
-                  <div>
-                    <p className="font-semibold text-[#1f3c41]">{testimonial.name}</p>
-                    <p className="text-xs text-[#567a80]">{testimonial.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="mx-auto mb-16 max-w-6xl rounded-3xl border border-[#1c434a]/15 bg-white p-10">
-          <div className="mb-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">Security & Compliance</p>
-            <h2 className="font-display mt-2 text-3xl font-semibold text-[#1f383c]">Enterprise-grade security</h2>
-            <p className="mt-3 text-base text-[#567a80]">Your data is protected with the highest standards</p>
-          </div>
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-            {securityFeatures.map(({ label, icon: Icon }, index) => (
-              <div
-                key={label}
-                className="stagger-fade flex flex-col items-center text-center"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="rounded-full bg-[#e8f7f2] p-4 mb-4">
-                  <Icon className="h-6 w-6 text-[#1f565f]" />
-                </div>
-                <p className="font-semibold text-[#1f3c41]">{label}</p>
-              </div>
-            ))}
-          </div>
-        </section>
 
         <section className="mx-auto mb-16 max-w-6xl">
           <div className="mb-7 text-center">
