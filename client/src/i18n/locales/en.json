@@ -146,7 +146,7 @@
     "about": "About",
     "privacy": "Privacy",
     "terms": "Terms",
-    "copyright": "© 2024 nyayasetu.ai. Built for hackathon demonstration."
+    "copyright": "© 2024 nyayasetu.ai."
   },
   "home": {
     "hero": {
@@ -247,7 +247,7 @@
         "privacyProtected": "Privacy Protected",
         "secureProcessing": "Secure Processing"
       },
-      "copyright": "© 2024 nyayasetu.ai. Built for hackathon demonstration.",
+      "copyright": "© 2024 nyayasetu.ai.",
       "madeWith": "Made with AI for everyone",
       "securePrivate": "Secure & Private"
     }
