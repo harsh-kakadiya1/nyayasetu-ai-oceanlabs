@@ -1,7 +1,7 @@
 import DocumentUpload from "@/components/document-upload";
 import AnalysisResults from "@/components/analysis-results";
 import LoadingAnalysis from "@/components/loading-analysis";
-import { ArrowRight, FileText, Clock, Eye, History, Upload, CheckCircle2, ShieldAlert, TimerReset, ScanSearch, MessageSquare, Trash2 } from "lucide-react";
+import { ArrowRight, FileText, Clock, History, Upload, CheckCircle2, ShieldAlert, TimerReset, ScanSearch, MessageSquare, Trash2 } from "lucide-react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import API_ENDPOINTS from "@/lib/api";
-import AnalysisDetailModal from "@/components/analysis-detail-modal";
+import HistoryAnalysisResults from "@/components/history-analysis-results";
 
 interface AnalysisData {
 	document: {
@@ -59,7 +59,6 @@ export default function Dashboard() {
 	const [historyLoading, setHistoryLoading] = useState(true);
 	const [selectedHistoryItem, setSelectedHistoryItem] = useState<Analysis | null>(null);
 	const [sidebarOpen, setSidebarOpen] = useState(true);
-	const [modalOpen, setModalOpen] = useState(false);
 	const [deletingHistoryId, setDeletingHistoryId] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -128,7 +127,8 @@ export default function Dashboard() {
 
 	const handleHistoryClick = (analysis: Analysis) => {
 		setSelectedHistoryItem(analysis);
-		setModalOpen(true);
+		setShowResults(true);
+		setAnalysisResult(null);
 	};
 
 	const handleDeleteHistoryItem = async (analysisId: string) => {
@@ -149,8 +149,8 @@ export default function Dashboard() {
 
 			setAnalyses((prev) => prev.filter((item) => item.id !== analysisId));
 			if (selectedHistoryItem?.id === analysisId) {
-				setModalOpen(false);
 				setSelectedHistoryItem(null);
+				setShowResults(false);
 			}
 
 			toast({
@@ -247,6 +247,7 @@ export default function Dashboard() {
 							onClick={() => {
 								setShowResults(false);
 								setAnalysisResult(null);
+								setSelectedHistoryItem(null);
 							}}
 							className="h-10 w-full rounded-xl bg-[#1f565f] text-white hover:bg-[#173f46]"
 						>
@@ -300,15 +301,21 @@ export default function Dashboard() {
 				<main className="h-full flex-1 overflow-y-auto">
 					<div className="mx-auto max-w-5xl px-6 py-6 lg:px-8 lg:py-8">
 						<div className="mb-6 flex items-end justify-between gap-4">
-							{(!showResults || isAnalyzing) && (
+							{(!showResults || isAnalyzing) && !selectedHistoryItem && (
 								<div>
 									<h1 className="font-display text-2xl font-semibold text-[#1d3b40]">{t("analysis.title")}</h1>
 									<p className="mt-1 text-sm text-[#6b8a90]">{t("analysis.subtitle")}</p>
 								</div>
 							)}
+							{selectedHistoryItem && (
+								<div>
+									<h1 className="font-display text-2xl font-semibold text-[#1d3b40]">Analysis History</h1>
+									<p className="mt-1 text-sm text-[#6b8a90]">Viewing previous analysis from {new Date(selectedHistoryItem.createdAt).toLocaleDateString()}</p>
+								</div>
+							)}
 						</div>
 
-						{(!showResults || isAnalyzing) && (
+						{(!showResults || isAnalyzing) && !selectedHistoryItem && (
 							<section className="mb-6">
 								<DocumentUpload onAnalysisStart={handleAnalysisStart} onAnalysisComplete={handleAnalysisComplete} onAnalysisError={handleAnalysisError} isAnalyzing={isAnalyzing} />
 							</section>
@@ -327,6 +334,14 @@ export default function Dashboard() {
 								{analysisResult.document?.filename && <p className="text-sm text-[#6b8a90]">{analysisResult.document.filename}</p>}
 								<AnalysisResults analysisData={analysisResult} />
 							</section>
+						) : selectedHistoryItem ? (
+							<section className="space-y-3">
+								<div className="flex items-center gap-2">
+									<History className="h-5 w-5 text-blue-600" />
+									<h2 className="font-display text-xl font-semibold text-[#1d3b40]">History Analysis Results</h2>
+								</div>
+								<HistoryAnalysisResults analysis={selectedHistoryItem} />
+							</section>
 						) : (
 							<section className="py-8">
 								<h3 className="font-display text-xl font-semibold text-[#1f3d42]">{t("welcome.title")}</h3>
@@ -336,8 +351,6 @@ export default function Dashboard() {
 					</div>
 				</main>
 			</div>
-
-			<AnalysisDetailModal analysis={selectedHistoryItem} open={modalOpen} onOpenChange={setModalOpen} />
 		</div>
 	);
 }
