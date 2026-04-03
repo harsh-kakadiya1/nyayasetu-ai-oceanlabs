@@ -15,39 +15,41 @@ export default function Navbar() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-[#2d545c]/15 bg-[#f9f5eb]/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-40 border-b border-[#2d545c]/10 bg-white/70 backdrop-blur-xl">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-10">
       <div className="flex min-h-[68px] items-center justify-between py-3">
           {/* Logo & Branding */}
-        <div className="flex flex-shrink-0 items-center space-x-2 sm:space-x-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1f525a] sm:h-9 sm:w-9">
-          <Scale className="h-4 w-4 text-[#e8fff7] sm:h-5 sm:w-5" />
+        <div className="flex flex-shrink-0 items-center space-x-2 sm:space-x-3 group cursor-pointer">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#1f565f] to-[#235962] shadow-lg group-hover:shadow-xl transition-all duration-300 sm:h-10 sm:w-10">
+          <Scale className="h-5 w-5 text-white sm:h-6 sm:w-6 group-hover:scale-110 transition-transform duration-300" />
             </div>
             <div className="flex flex-col justify-center">
-          <span className="font-display whitespace-nowrap text-base font-semibold leading-tight text-[#1f3c41] sm:text-lg">{t("brand.name")}</span>
-          <span className="-mt-1 hidden text-xs text-[#61868d] sm:block">{t("brand.tagline")}</span>
+          <span className="font-display whitespace-nowrap text-base font-bold leading-tight text-[#1f3c41] sm:text-lg">{t("brand.name")}</span>
+          <span className="-mt-1 hidden text-xs text-[#61868d] sm:block font-medium">{t("brand.tagline")}</span>
             </div>
           </div>
 
           {/* Desktop Navigation */}
-        <div className="hidden h-full flex-shrink-0 items-center space-x-4 md:flex lg:space-x-6">
-        <div className="flex h-full items-center space-x-4 lg:space-x-6">
+        <div className="hidden h-full flex-shrink-0 items-center space-x-6 md:flex lg:space-x-8">
+        <div className="flex h-full items-center space-x-6 lg:space-x-8">
               <Link href="/">
-          <div className="flex h-10 items-center px-2">
-            <span className={`whitespace-nowrap text-sm font-medium transition-colors lg:text-base ${
-            location === "/" ? "text-[#1f4f57]" : "text-[#5f8187] hover:text-[#1f4f57]"
+          <div className="flex h-10 items-center px-2 relative group">
+            <span className={`whitespace-nowrap text-sm font-semibold transition-colors lg:text-base ${
+            location === "/" ? "text-[#1f4f57]" : "text-[#6d8b90] hover:text-[#1f4f57]"
             }`}>
                     {t("navigation.home", { defaultValue: "Home" })}
                   </span>
+                  {location === "/" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1f4f57]" />}
                 </div>
               </Link>
               <Link href="/dashboard">
-          <div className="flex h-10 items-center px-2">
-            <span className={`whitespace-nowrap text-sm font-medium transition-colors lg:text-base ${
-            location === "/dashboard" ? "text-[#1f4f57]" : "text-[#5f8187] hover:text-[#1f4f57]"
+          <div className="flex h-10 items-center px-2 relative group">
+            <span className={`whitespace-nowrap text-sm font-semibold transition-colors lg:text-base ${
+            location === "/dashboard" ? "text-[#1f4f57]" : "text-[#6d8b90] hover:text-[#1f4f57]"
             }`}>
                     {t("navigation.dashboard")}
                   </span>
+                  {location === "/dashboard" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1f4f57]" />}
                 </div>
               </Link>
           <div className="flex h-10 items-center">
@@ -55,19 +57,19 @@ export default function Navbar() {
               </div>
           {user ? (
             <>
-              <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]" onClick={logout}>
+              <Button variant="ghost" size="sm" className="text-[#6d8b90] hover:text-[#1f4f57] hover:bg-[#f0f8f6]" onClick={logout}>
                 Logout
               </Button>
             </>
           ) : (
             <>
               <Link href="/login">
-                <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]">
+                <Button variant="ghost" size="sm" className="text-[#6d8b90] hover:text-[#1f4f57] hover:bg-[#f0f8f6]">
                   Login
                 </Button>
               </Link>
               <Link href="/signup">
-                <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]">
+                <Button className="rounded-full bg-[#1f565f] px-6 text-white hover:bg-[#173f46] font-semibold shadow-md hover:shadow-lg transition-all duration-300">
                   Sign up
                 </Button>
               </Link>
