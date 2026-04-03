@@ -1,4 +1,4 @@
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface HeroSectionProps {
@@ -25,7 +25,7 @@ export default function HeroSection({
       {/* Animated background elements */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-64 h-64 bg-[#bdf2e0]/20 rounded-full blur-3xl animate-float-up" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-[#f6b26b]/15 rounded-full blur-3xl" style={{ animationDelay: "1s" }} className="animate-float-up" />
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-[#f6b26b]/15 rounded-full blur-3xl animate-float-up" style={{ animationDelay: "1s" }} />
       </div>
 
       <div className="relative z-10 mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-10">
@@ -58,18 +58,18 @@ export default function HeroSection({
         <div className="stagger-fade rounded-3xl border border-[#1f4f57]/20 bg-[#1e4c54] p-5 text-[#ecfffa] shadow-[0_18px_40px_rgba(20,52,58,0.3)] sm:p-6 backdrop-blur-sm">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
           <div className="relative mb-4 flex items-center justify-between">
-            <p className="font-display text-lg">{`Secured & Trusted`}</p>
-            <div className="animate-pulse-glow h-3 w-3 rounded-full bg-[#bdf2e0]" />
+            <p className="font-display text-lg">Why teams trust this</p>
+            <Lock className="h-5 w-5 text-[#bdf2e0]" />
           </div>
           <div className="space-y-3">
             <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm hover:bg-white/15 transition-colors duration-300">
-              <p className="text-sm text-[#d6f8ef]">✓ End-to-end encryption for all documents</p>
+              <p className="text-sm text-[#d6f8ef]">Privacy-first processing, built for sensitive legal language.</p>
             </div>
             <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm hover:bg-white/15 transition-colors duration-300">
-              <p className="text-sm text-[#d6f8ef]">✓ ISO 27001 & GDPR compliant</p>
+              <p className="text-sm text-[#d6f8ef]">Structured highlights for obligations, penalties, and hidden clauses.</p>
             </div>
             <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm hover:bg-white/15 transition-colors duration-300">
-              <p className="text-sm text-[#d6f8ef]">✓ Zero-knowledge processing architecture</p>
+              <p className="text-sm text-[#d6f8ef]">Useful for citizens, founders, and legal professionals alike.</p>
             </div>
           </div>
         </div>
