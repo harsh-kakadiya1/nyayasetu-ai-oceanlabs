@@ -5,7 +5,7 @@ import { jsPDF } from "jspdf";
 import RiskAssessment from "./risk-assessment";
 import QAChat from "./qa-chat";
 import { ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+type PdfFontStyle = "normal" | "bold" | "italic" | "bolditalic";
 
 interface AnalysisData {
   document: {
@@ -57,7 +59,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
   };
 
   // Handle status changes from SaveToggle
-  const handleDownloadStatusChange = async (status: 'idle' | 'loading' | 'success' | 'saved') => {
+  const handleDownloadStatusChange = useCallback(async (status: 'idle' | 'loading' | 'success' | 'saved') => {
     setDownloadStatus(status);
     
     if (status === 'loading') {
@@ -76,9 +78,9 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
         let yPosition = margin;
 
         // Helper function to add text with word wrapping
-        const addWrappedText = (text: string, x: number, y: number, maxW: number, fontSize: number, fontStyle: string = 'normal') => {
+        const addWrappedText = (text: string, x: number, y: number, maxW: number, fontSize: number, fontStyle: PdfFontStyle = 'normal') => {
           pdf.setFontSize(fontSize);
-          pdf.setFont(undefined, fontStyle);
+          pdf.setFont('helvetica', fontStyle);
           const lines = pdf.splitTextToSize(text, maxW);
           pdf.text(lines, x, y);
           return y + (lines.length * fontSize * 0.35);
@@ -89,13 +91,13 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
 
         // Title
         pdf.setFontSize(20);
-        pdf.setFont(undefined, 'bold');
+        pdf.setFont('helvetica', 'bold');
         pdf.text('Legal Document Analysis Report', margin, yPosition);
         yPosition += 15;
 
         // Metadata
         pdf.setFontSize(10);
-        pdf.setFont(undefined, 'normal');
+        pdf.setFont('helvetica', 'normal');
         pdf.text(`Document: ${documentFileName}`, margin, yPosition);
         yPosition += 7;
         pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
@@ -107,7 +109,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
 
         // Risk Level Badge
         pdf.setFontSize(10);
-        pdf.setFont(undefined, 'bold');
+        pdf.setFont('helvetica', 'bold');
         const riskColor = analysis.riskLevel === 'high' ? [220, 38, 38] : analysis.riskLevel === 'medium' ? [245, 158, 11] : [34, 197, 94];
         pdf.setTextColor(riskColor[0], riskColor[1], riskColor[2]);
         pdf.text(`Risk Level: ${analysis.riskLevel.toUpperCase()}`, margin, yPosition);
@@ -116,7 +118,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
 
         // Summary Section
         pdf.setFontSize(12);
-        pdf.setFont(undefined, 'bold');
+        pdf.setFont('helvetica', 'bold');
         pdf.text('Summary', margin, yPosition);
         yPosition += 8;
 
@@ -130,12 +132,12 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
 
         if (summaryKeyTerms && Object.keys(summaryKeyTerms).length > 0) {
           pdf.setFontSize(12);
-          pdf.setFont(undefined, 'bold');
+          pdf.setFont('helvetica', 'bold');
           pdf.text('Key Terms', margin, yPosition);
           yPosition += 8;
 
           pdf.setFontSize(9);
-          pdf.setFont(undefined, 'normal');
+          pdf.setFont('helvetica', 'normal');
           Object.entries(summaryKeyTerms).forEach(([key, value]) => {
             if (value) {
               const termText = `${key.charAt(0).toUpperCase() + key.slice(1)}: ${String(value)}`;
@@ -148,7 +150,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
         // Risk Items
         if (analysis.riskItems && analysis.riskItems.length > 0) {
           pdf.setFontSize(12);
-          pdf.setFont(undefined, 'bold');
+          pdf.setFont('helvetica', 'bold');
           pdf.text('Risk Assessment', margin, yPosition);
           yPosition += 8;
 
@@ -160,12 +162,12 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
               yPosition = margin;
             }
 
-            pdf.setFont(undefined, 'bold');
+            pdf.setFont('helvetica', 'bold');
             const riskColor = item.level === 'high' ? [220, 38, 38] : item.level === 'medium' ? [245, 158, 11] : [34, 197, 94];
             pdf.setTextColor(riskColor[0], riskColor[1], riskColor[2]);
             yPosition = addWrappedText(`• ${cleanMarkdown(item.title)}`, margin + 5, yPosition, maxWidth - 5, 9, 'bold');
             
-            pdf.setFont(undefined, 'normal');
+            pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(0, 0, 0);
             yPosition = addWrappedText(cleanMarkdown(item.description), margin + 10, yPosition, maxWidth - 10, 8);
             yPosition += 5;
@@ -182,7 +184,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
           }
 
           pdf.setFontSize(12);
-          pdf.setFont(undefined, 'bold');
+          pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(0, 0, 0);
           pdf.text('Recommendations', margin, yPosition);
           yPosition += 8;
@@ -195,10 +197,10 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
               yPosition = margin;
             }
 
-            pdf.setFont(undefined, 'bold');
+            pdf.setFont('helvetica', 'bold');
             yPosition = addWrappedText(`${index + 1}. ${cleanMarkdown(rec.title)}`, margin + 5, yPosition, maxWidth - 5, 9, 'bold');
             
-            pdf.setFont(undefined, 'normal');
+            pdf.setFont('helvetica', 'normal');
             yPosition = addWrappedText(cleanMarkdown(rec.description), margin + 10, yPosition, maxWidth - 10, 8);
             yPosition += 5;
           });
@@ -220,7 +222,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
         });
       }
     }
-  };
+  }, [analysis, documentData.filename, toast]);
 
   const toggleClause = (index: number) => {
     const newExpanded = new Set(expandedClauses);
