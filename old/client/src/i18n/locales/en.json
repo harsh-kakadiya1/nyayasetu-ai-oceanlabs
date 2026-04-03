@@ -1,0 +1,254 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "upload": "Upload",
+    "download": "Download",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "language": "Language"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "history": "History",
+    "settings": "Settings",
+    "getStarted": "Get Started"
+  },
+  "brand": {
+    "name": "nyayasetu.ai",
+    "tagline": "Legal Document Intelligence",
+    "description": "Making legal documents accessible through AI-powered analysis and plain-language explanations."
+  },
+  "hero": {
+    "title": "See Your Legal Documents Clearly",
+    "description": "Upload any legal document and get instant plain-language summaries, risk analysis, and actionable insights powered by advanced AI."
+  },
+  "upload": {
+    "title": "Upload Document",
+    "dragAndDrop": "Drag and drop your document here",
+    "orClickToSelect": "or click to select a file",
+    "supportedFormats": "Supported formats: PDF, DOCX, TXT",
+    "maxFileSize": "Maximum file size: 10MB",
+    "pasteText": "Or paste your document text here",
+    "textPlaceholder": "Paste your legal document text here...",
+    "documentType": "Document Type",
+    "autoDetect": "Auto-detect",
+    "employment": "Employment Contract",
+    "rental": "Rental Agreement",
+    "nda": "Non-Disclosure Agreement",
+    "terms": "Terms of Service",
+    "other": "Other",
+    "summaryLength": "Summary Length",
+    "brief": "Brief",
+    "standard": "Standard",
+    "detailed": "Detailed",
+    "analyze": "Analyze Document",
+    "analyzing": "Analyzing...",
+    "fileTooLarge": "File too large",
+    "fileTooLargeDesc": "Please select a file smaller than 10MB.",
+    "invalidFileType": "Invalid file type",
+    "invalidFileTypeDesc": "Please select a PDF, DOCX, or TXT file.",
+    "uploadError": "Upload failed",
+    "uploadErrorDesc": "Failed to upload document. Please try again.",
+    "analysisError": "Analysis failed",
+    "analysisErrorDesc": "Failed to analyze document. Please try again.",
+    "serviceUnavailable": "Service Temporarily Unavailable",
+    "serviceUnavailableDesc": "The AI analysis service is experiencing high demand. Please try again in a few moments.",
+    "connectionError": "Connection Error", 
+    "connectionErrorDesc": "Unable to connect to the analysis service. Please check your internet connection and try again.",
+    "timeoutError": "Request Timeout",
+    "timeoutErrorDesc": "The analysis is taking longer than expected. Please try again with a shorter document."
+  },
+  "loading": {
+    "title": "Analyzing Your Document",
+    "description": "Our AI is carefully reviewing your document to provide comprehensive insights...",
+    "steps": {
+      "parsing": "Parsing document structure...",
+      "analyzing": "Analyzing content and clauses...",
+      "evaluating": "Evaluating risks and compliance...",
+      "finalizing": "Generating insights and recommendations..."
+    },
+    "stepNames": {
+      "parsing": "Parse",
+      "analyzing": "Analyze", 
+      "evaluating": "Evaluate",
+      "finalizing": "Finalize"
+    }
+  },
+  "analysis": {
+    "title": "Analysis Results",
+    "overview": "Analysis Overview",
+    "documentLength": "Document Length",
+    "words": "words",
+    "keyClauses": "Key Clauses",
+    "identified": "identified",
+    "riskLevel": "Risk Level",
+    "processingTime": "Processing Time",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "summary": "Summary",
+    "keyTerms": "Key Terms",
+    "riskAssessment": "Risk Assessment",
+    "clauses": "Key Clauses",
+    "recommendations": "Recommendations",
+    "employer": "Employer",
+    "employee": "Employee",
+    "salary": "Salary",
+    "startDate": "Start Date",
+    "probation": "Probation Period"
+  },
+  "risk": {
+    "highRisk": "High Risk",
+    "mediumRisk": "Medium Risk",
+    "lowRisk": "Low Risk",
+    "riskItems": "Risk Items",
+    "noRisks": "No significant risks identified"
+  },
+  "chat": {
+    "title": "Ask Questions",
+    "placeholder": "Ask a question about your document...",
+    "send": "Send",
+    "thinking": "Thinking...",
+    "noDocument": "Please upload a document first to start asking questions.",
+    "error": "Failed to get answer. Please try again."
+  },
+  "welcome": {
+    "title": "Upload a Document to Get Started",
+    "description": "Choose a legal document from your device or paste the text directly. Our AI will analyze it and provide you with clear, actionable insights."
+  },
+  "analyzing": {
+    "title": "Analyzing Your Document",
+    "description": "Our AI is carefully reviewing your document to provide comprehensive insights..."
+  },
+  "footer": {
+    "product": "Product",
+    "features": "Features",
+    "pricing": "Pricing",
+    "api": "API Access",
+    "resources": "Resources",
+    "documentation": "Documentation",
+    "guides": "Legal Guides",
+    "support": "Support",
+    "company": "Company",
+    "about": "About",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "copyright": "© 2024 nyayasetu.ai. Built for hackathon demonstration."
+  },
+  "home": {
+    "hero": {
+      "badge": "AI-Powered Legal Assistant",
+      "title": "Welcome to",
+      "subtitle": "NyayaSetu.AI",
+      "description": "Transform complex legal documents into clear, actionable insights with our advanced AI technology",
+      "getStartedButton": "Get Started Free",
+      "noRegistration": "No registration required • Instant analysis"
+    },
+    "stats": {
+      "documentsAnalyzed": "Documents Analyzed",
+      "accuracyRate": "Accuracy Rate",
+      "averageAnalysis": "Average Analysis",
+      "available": "Available"
+    },
+    "features": {
+      "title": "Powerful Features",
+      "subtitle": "Everything you need to understand and analyze legal documents with confidence",
+      "instantSummaries": {
+        "title": "Instant Summaries",
+        "description": "Get plain-language summaries of complex legal documents in seconds. No more struggling with legal jargon."
+      },
+      "riskAnalysis": {
+        "title": "AI-Powered Risk Analysis",
+        "description": "Identify potential risks, unusual terms, and key clauses automatically using advanced AI algorithms."
+      },
+      "clauseBreakdown": {
+        "title": "Clause Breakdown",
+        "description": "See original and simplified versions of important contract clauses with detailed explanations."
+      },
+      "accessible": {
+        "title": "Accessible for Everyone",
+        "description": "Designed for both legal professionals and everyday users with intuitive, user-friendly interface."
+      }
+    },
+    "benefits": {
+      "title": "Why Choose NyayaSetu.AI?",
+      "subtitle": "Empower yourself with intelligent legal document analysis",
+      "saveTime": {
+        "title": "Save Time and Money",
+        "description": "Reduce legal review costs and get instant analysis of your documents."
+      },
+      "understandSigning": {
+        "title": "Understand Before Signing",
+        "description": "Know your rights and obligations clearly before making any commitments."
+      },
+      "spotRisks": {
+        "title": "Spot Hidden Risks",
+        "description": "Identify potential issues and negotiate better terms with confidence."
+      },
+      "actionableInsights": {
+        "title": "Actionable Insights",
+        "description": "Get clear, practical recommendations you can act on immediately."
+      },
+      "readyToStart": {
+        "title": "Ready to Get Started?",
+        "description": "Join thousands of users who trust NyayaSetu.AI for their legal document analysis needs.",
+        "button": "Start Analyzing Documents"
+      }
+    },
+    "security": {
+      "title": "Security & Privacy First",
+      "subtitle": "Your documents and privacy are protected with enterprise-grade security",
+      "dataSafe": {
+        "title": "Your Data is Safe",
+        "description": "We never store your documents. All analysis is performed securely and confidentially with end-to-end encryption."
+      },
+      "privacyFirst": {
+        "title": "Privacy First",
+        "description": "Your privacy is our top priority. No data is shared with third parties, and all processing happens locally."
+      }
+    },
+    "disclaimer": {
+      "title": "Important Disclaimer",
+      "important": "Important:",
+      "informational": "This tool is for informational purposes only.",
+      "notRely": "Do not rely solely on its analysis for legal decisions.",
+      "consultAdvocate": "Always consult a qualified advocate or legal professional for advice specific to your situation.",
+      "button": "I Understand & Continue"
+    },
+    "footer": {
+      "brand": {
+        "name": "nyayasetu.ai",
+        "description": "Making legal documents accessible through AI-powered analysis and plain-language explanations."
+      },
+      "features": {
+        "title": "Features",
+        "documentAnalysis": "Document Analysis",
+        "riskAssessment": "Risk Assessment",
+        "plainLanguage": "Plain Language Summary",
+        "clauseBreakdown": "Clause Breakdown"
+      },
+      "security": {
+        "title": "Security",
+        "noDataStorage": "No Data Storage",
+        "endToEnd": "End-to-End Encryption",
+        "privacyProtected": "Privacy Protected",
+        "secureProcessing": "Secure Processing"
+      },
+      "copyright": "© 2024 nyayasetu.ai. Built for hackathon demonstration.",
+      "madeWith": "Made with AI for everyone",
+      "securePrivate": "Secure & Private"
+    }
+  }
+}
