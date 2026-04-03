@@ -81,11 +81,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8f4ea] via-[#edf4f1] to-[#f4f8f7] px-4 py-10">
-      <div className="mx-auto w-full max-w-md rounded-3xl border border-[#2d575e]/15 bg-white/90 p-6 shadow-lg sm:p-8">
-        <div className="relative mb-6 rounded-full border border-[#2d575e]/20 bg-[#edf5f3] p-1">
+    <div className="min-h-screen bg-gradient-to-br from-[#f8f5f0] via-[#f0f7f4] to-[#f8f9f8] px-4 py-10 flex items-center justify-center">
+      <div className="mx-auto w-full max-w-md rounded-2xl border border-[#1f565f]/12 bg-white/95 p-6 shadow-[0_8px_32px_rgba(31,86,95,0.08)] backdrop-blur-md sm:p-8">
+        <div className="relative mb-6 rounded-lg border border-[#1f565f]/15 bg-[#f3f8f6] p-1">
           <div
-            className={`absolute left-1 top-1 h-[calc(100%-8px)] w-[calc(50%-4px)] rounded-full bg-white shadow-sm transition-transform duration-300 ${
+            className={`absolute left-1 top-1 h-[calc(100%-8px)] w-[calc(50%-4px)] rounded-md bg-white shadow-[0_2px_8px_rgba(31,86,95,0.1)] transition-transform duration-300 ${
               isSignupMode ? "translate-x-full" : "translate-x-0"
             }`}
           />
@@ -93,8 +93,8 @@ export default function Login() {
             <button
               type="button"
               onClick={() => switchMode("login")}
-              className={`h-10 rounded-full text-sm font-semibold transition-colors ${
-                !isSignupMode ? "text-[#1d3b40]" : "text-[#6d8f95]"
+              className={`h-10 rounded-md text-sm font-bold transition-colors ${
+                !isSignupMode ? "text-[#1f3c41]" : "text-[#7f9a9f]"
               }`}
             >
               Login
@@ -102,8 +102,8 @@ export default function Login() {
             <button
               type="button"
               onClick={() => switchMode("signup")}
-              className={`h-10 rounded-full text-sm font-semibold transition-colors ${
-                isSignupMode ? "text-[#1d3b40]" : "text-[#6d8f95]"
+              className={`h-10 rounded-md text-sm font-bold transition-colors ${
+                isSignupMode ? "text-[#1f3c41]" : "text-[#7f9a9f]"
               }`}
             >
               Sign up
@@ -111,10 +111,10 @@ export default function Login() {
           </div>
         </div>
 
-        <h1 className="font-display text-3xl font-semibold text-[#1d3b40]">
+        <h1 className="font-display text-3xl font-bold text-[#1f3c41]">
           {isSignupMode ? "Create account" : "Welcome back"}
         </h1>
-        <p className="mt-2 text-sm text-[#547980]">
+        <p className="mt-2 text-sm leading-relaxed text-[#5f8187]">
           {isSignupMode
             ? "Create your account to save analysis history securely."
             : "Access your analysis dashboard and saved history."}
@@ -164,7 +164,7 @@ export default function Login() {
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button type="submit" className="w-full h-10 rounded-lg bg-gradient-to-r from-[#1f565f] to-[#173f46] text-white font-semibold hover:from-[#173f46] hover:to-[#0f2b31] shadow-[0_4px_12px_rgba(31,86,95,0.15)] transition-all duration-300" disabled={isSubmitting}>
             {isSubmitting
               ? isSignupMode
                 ? "Creating account..."
@@ -176,10 +176,10 @@ export default function Login() {
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#2d575e]/20"></div>
+              <div className="w-full border-t border-[#1f565f]/15"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-[#547980]">
+              <span className="bg-white px-2 text-[#5f8187]">
                 {isSignupMode ? "Or sign up with" : "Or continue with"}
               </span>
             </div>
@@ -188,7 +188,7 @@ export default function Login() {
           <Button
             type="button"
             variant="outline"
-            className="w-full border-[#2d575e]/20"
+            className="w-full h-10 border-[#1f565f]/20 hover:bg-[#f8f5f0] text-[#1f3c41]"
             onClick={googleLogin}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
