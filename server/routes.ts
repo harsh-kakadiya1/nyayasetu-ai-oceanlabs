@@ -176,7 +176,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Analyze document with Groq
       const startTime = Date.now();
-      const analysis = await analyzeDocument(parsedDoc.content, documentType, preferredLanguage as string);
+      const analysis = await analyzeDocument(
+        parsedDoc.content,
+        documentType,
+        preferredLanguage as string,
+        summaryLength,
+      );
       const processingTime = `${((Date.now() - startTime) / 1000).toFixed(1)} seconds`;
 
       // Create analysis record
@@ -238,7 +243,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Analyze document with Groq
       const startTime = Date.now();
-      const analysis = await analyzeDocument(parsedDoc.content, documentType, preferredLanguage as string);
+      const analysis = await analyzeDocument(
+        parsedDoc.content,
+        documentType,
+        preferredLanguage as string,
+        summaryLength,
+      );
       const processingTime = `${((Date.now() - startTime) / 1000).toFixed(1)} seconds`;
 
       // Create analysis record

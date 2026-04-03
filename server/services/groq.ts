@@ -1,6 +1,7 @@
 import Groq from "groq-sdk";
 
 type SupportedLanguage = "en" | "hi" | "gu" | "mr" | "ta" | "bn";
+type SummaryLength = "brief" | "standard" | "detailed";
 
 function normalizeLanguage(input?: string): SupportedLanguage {
   if (!input) return "en";
@@ -11,6 +12,15 @@ function normalizeLanguage(input?: string): SupportedLanguage {
 
   const supported: SupportedLanguage[] = ["en", "hi", "gu", "mr", "ta", "bn"];
   return supported.includes(base as SupportedLanguage) ? (base as SupportedLanguage) : "en";
+}
+
+function normalizeSummaryLength(input?: string): SummaryLength {
+  if (!input) return "standard";
+  const value = input.toLowerCase();
+  if (value === "brief" || value === "standard" || value === "detailed") {
+    return value;
+  }
+  return "standard";
 }
 
 // Debug API key loading
@@ -25,13 +35,7 @@ const groq = new Groq({
 
 export interface DocumentSummary {
   summary: string;
-  keyTerms: {
-    employer?: string;
-    employee?: string;
-    salary?: string;
-    startDate?: string;
-    probation?: string;
-  };
+  keyTerms: Record<string, string | undefined>;
   documentType: string;
 }
 
@@ -63,6 +67,70 @@ export interface FullAnalysis {
   recommendations: Recommendation[];
   wordCount: number;
   riskLevel: "high" | "medium" | "low";
+}
+
+async function enforceSummaryLength(
+  content: string,
+  currentSummary: string,
+  language: SupportedLanguage,
+  summaryLength: SummaryLength,
+  model: string,
+): Promise<string> {
+  const targets: Record<SummaryLength, { min: number; max: number }> = {
+    brief: { min: 70, max: 130 },
+    standard: { min: 140, max: 230 },
+    detailed: { min: 260, max: 420 },
+  };
+
+  const langInstruction: Record<SupportedLanguage, string> = {
+    en: "Write in English.",
+    hi: "हिंदी में लिखें।",
+    gu: "ગુજરાતીમાં લખો।",
+    mr: "मराठीत लिहा।",
+    ta: "தமிழில் எழுதவும்.",
+    bn: "বাংলায় লিখুন।",
+  };
+
+  const target = targets[summaryLength];
+  const existingWordCount = currentSummary.trim().split(/\s+/).filter(Boolean).length;
+
+  // If the summary already fits target range closely, keep it.
+  if (existingWordCount >= target.min && existingWordCount <= target.max) {
+    return currentSummary;
+  }
+
+  try {
+    const systemPrompt = `You are a legal summarizer.
+${langInstruction[language]}
+
+Task:
+- Rewrite the summary to match target length: ${summaryLength}.
+- Target word count must be between ${target.min} and ${target.max} words.
+- Keep factual consistency with the source document.
+- Keep plain-language clarity.
+
+Return only the rewritten summary text (no JSON, no markdown).`;
+
+    const response = await groq.chat.completions.create({
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        {
+          role: "user",
+          content: `Current summary:\n${currentSummary}\n\nSource document:\n${content}`,
+        },
+      ],
+      temperature: 0.2,
+    });
+
+    const rewritten = response.choices[0]?.message?.content?.trim();
+    if (!rewritten) return currentSummary;
+
+    return rewritten;
+  } catch (error) {
+    console.warn("⚠️ Summary length enforcement failed, using original summary", error);
+    return currentSummary;
+  }
 }
 
 async function localizeAnalysis(
@@ -185,11 +253,26 @@ Rules:
   }
 }
 
-export async function analyzeDocument(content: string, documentType?: string, language: string = 'en'): Promise<FullAnalysis> {
+export async function analyzeDocument(
+  content: string,
+  documentType?: string,
+  language: string = "en",
+  summaryLength: string = "standard",
+): Promise<FullAnalysis> {
   // Using Meta Llama 4 Scout model for document analysis
   const model = "meta-llama/llama-4-scout-17b-16e-instruct";
   
   const normalizedLanguage = normalizeLanguage(language);
+  const normalizedSummaryLength = normalizeSummaryLength(summaryLength);
+
+  const summaryLengthInstructions: Record<SummaryLength, string> = {
+    brief:
+      "Keep summary concise (about 3-5 bullet points or 80-140 words). Focus only on core obligations, biggest risks, and immediate action.",
+    standard:
+      "Provide a balanced summary (about 140-240 words) covering parties, obligations, key timelines, risks, and practical next steps.",
+    detailed:
+      "Provide an in-depth summary (about 260-420 words) with richer context, key clauses, risk rationale, negotiation points, and concrete recommendations.",
+  };
 
   const languageInstructions = {
     'en': 'Respond in English with clear, jargon-free explanations.',
@@ -216,22 +299,31 @@ Focus on:
 
 Language Instructions: ${languageInstructions[normalizedLanguage]}
 
+Summary Length Preference: ${normalizedSummaryLength}
+Length Guidance: ${summaryLengthInstructions[normalizedSummaryLength]}
+
 IMPORTANT:
 - Write all user-facing text fields (summary, risk item titles/descriptions, clause titles/simplified text, recommendations) in the requested language.
 - Keep enum values like riskLevel and riskItems.level strictly as: high, medium, low.
 
 Document type context: ${documentType || "auto-detect"}
 
+Document Type Rules:
+- If document type context is "auto-detect", infer the most accurate type from document content.
+- Do NOT default to employment unless the text clearly indicates employment terms (employee, employer, salary, probation, etc.).
+- Choose the most accurate label such as: Rental Agreement, Employment Contract, Service Agreement, NDA, Purchase Agreement, Loan Agreement, Partnership Agreement, Lease Agreement, or Other Legal Document.
+- Set summary.documentType to the inferred label.
+
 Respond with valid JSON matching this structure:
 {
   "summary": {
     "summary": "string",
     "keyTerms": {
-      "employer": "string",
-      "employee": "string", 
-      "salary": "string",
-      "startDate": "string",
-      "probation": "string"
+      "partyA": "string",
+      "partyB": "string",
+      "effectiveDate": "string",
+      "term": "string",
+      "payment": "string"
     },
     "documentType": "string"
   },
@@ -267,6 +359,7 @@ Respond with valid JSON matching this structure:
     console.log('🚀 Starting Groq analysis...');
     console.log('📄 Content length:', content.length);
     console.log('🌍 Language:', normalizedLanguage, `(raw: ${language})`);
+    console.log('🧾 Summary length:', normalizedSummaryLength, `(raw: ${summaryLength})`);
     
     // Retry logic for API overload
     const maxRetries = 3;
@@ -314,6 +407,14 @@ Respond with valid JSON matching this structure:
           });
           throw new Error("Invalid analysis structure from Groq API");
         }
+
+        analysis.summary.summary = await enforceSummaryLength(
+          content,
+          analysis.summary.summary,
+          normalizedLanguage,
+          normalizedSummaryLength,
+          model,
+        );
 
         const localizedAnalysis = await localizeAnalysis(analysis, normalizedLanguage, model);
 
