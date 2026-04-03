@@ -10,6 +10,12 @@ import {
   ShieldCheck,
   Sparkles,
   TriangleAlert,
+  Star,
+  Zap,
+  Shield,
+  BarChart3,
+  Users,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
@@ -20,6 +26,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import HeroSection from "@/components/hero-section";
+import StatsCounter from "@/components/stats-counter";
 
 export default function Landing() {
   const { t } = useTranslation();
@@ -65,6 +73,92 @@ export default function Landing() {
     },
   ];
 
+  const pricingPlans = [
+    {
+      name: "Starter",
+      description: "For individuals exploring legal document analysis",
+      price: "Free",
+      period: "Forever free",
+      features: [
+        "Up to 5 documents per month",
+        "Basic analysis & risk detection",
+        "Standard response time",
+        "No credit card required",
+      ],
+      cta: "Get Started",
+      highlighted: false,
+    },
+    {
+      name: "Professional",
+      description: "For professionals and small teams",
+      price: "$29",
+      period: "per month",
+      features: [
+        "Unlimited documents",
+        "Advanced AI analysis",
+        "Priority support",
+        "Analysis history (6 months)",
+        "Custom risk thresholds",
+        "Batch processing",
+      ],
+      cta: "Start Free Trial",
+      highlighted: true,
+    },
+    {
+      name: "Enterprise",
+      description: "For organizations with advanced needs",
+      price: "Custom",
+      period: "contact us",
+      features: [
+        "Everything in Professional",
+        "Dedicated account manager",
+        "API access",
+        "Advanced security & compliance",
+        "Custom integrations",
+        "SLA guarantees",
+      ],
+      cta: "Contact Sales",
+      highlighted: false,
+    },
+  ];
+
+  const integrations = [
+    { name: "Google Drive", icon: "🔗" },
+    { name: "Slack", icon: "💬" },
+    { name: "Microsoft Teams", icon: "👥" },
+    { name: "Notion", icon: "📝" },
+    { name: "Zapier", icon: "⚡" },
+    { name: "REST API", icon: "🔌" },
+  ];
+
+  const testimonials = [
+    {
+      name: "Priya Sharma",
+      role: "Legal Consultant",
+      text: "Nyayasetu AI has transformed how I review contracts. It saves me hours every week.",
+      rating: 5,
+    },
+    {
+      name: "Rajesh Kumar",
+      role: "Corporate Lawyer",
+      text: "The accuracy of risk detection is impressive. A must-have tool for modern legal practice.",
+      rating: 5,
+    },
+    {
+      name: "Neha Patel",
+      role: "Startup Founder",
+      text: "As a non-lawyer, this tool gives me confidence reviewing agreements. Highly recommended!",
+      rating: 5,
+    },
+  ];
+
+  const securityFeatures = [
+    { label: "Bank-Level Encryption", icon: Lock },
+    { label: "ISO 27001 Certified", icon: Shield },
+    { label: "GDPR Compliant", icon: Zap },
+    { label: "Zero-Knowledge Architecture", icon: Globe },
+  ];
+
   const faqs = [
     {
       question: "What documents can I upload?",
@@ -101,69 +195,20 @@ export default function Landing() {
     <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_20%_10%,rgba(189,242,224,0.5),transparent_35%),radial-gradient(circle_at_85%_20%,rgba(255,224,178,0.55),transparent_32%),linear-gradient(180deg,#faf7f0_0%,#f3ece0_45%,#eef5f2_100%)]">
       <div className="absolute inset-0 pointer-events-none opacity-40 bg-[linear-gradient(rgba(29,59,64,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(29,59,64,0.06)_1px,transparent_1px)] bg-[size:36px_36px]" />
 
-      <main className="relative z-10 px-4 pb-16 sm:px-6 lg:px-10">
-        <section className="mx-auto grid max-w-6xl grid-cols-1 gap-8 pb-12 pt-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-10 lg:pt-10">
-          <div className="stagger-fade">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#1f383c]/15 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#2b4f55]">
-              <Sparkles className="h-3.5 w-3.5" />
-              {t("landing.hero.badge")}
-            </div>
-            <h1 className="font-display text-4xl font-semibold leading-[1.02] tracking-tight text-[#1b3338] sm:text-5xl lg:text-6xl">
-              {t("landing.hero.title")}
-              <span className="mt-2 block text-[#a24e2f]">{t("landing.hero.highlight")}</span>
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-relaxed text-[#355a60] sm:text-lg">
-              {t("landing.hero.description")}
-            </p>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
-              <Button
-                onClick={handleGetStarted}
-                className="group h-12 rounded-full bg-[#1f565f] px-7 text-sm font-semibold text-[#f3fffb] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#173f46] hover:shadow-[0_10px_20px_rgba(23,63,70,0.28)]"
-              >
-                {t("landing.hero.cta")}
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-              </Button>
-              <span className="text-sm font-medium text-[#486b71]">
-                {t("landing.hero.subCta")}
-              </span>
-            </div>
-          </div>
+      <main className="relative z-10 pb-16">
+        <HeroSection
+          title={t("landing.hero.title")}
+          highlight={t("landing.hero.highlight")}
+          description={t("landing.hero.description")}
+          ctaText={t("landing.hero.cta")}
+          subCtaText={t("landing.hero.subCta")}
+          badgeText={t("landing.hero.badge")}
+          onCtaClick={handleGetStarted}
+        />
 
-          <div className="stagger-fade rounded-3xl border border-[#1f4f57]/20 bg-[#1e4c54] p-5 text-[#ecfffa] shadow-[0_18px_40px_rgba(20,52,58,0.3)] sm:p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="font-display text-lg">{t("landing.trust.title")}</p>
-              <Lock className="h-5 w-5 text-[#bdf2e0]" />
-            </div>
-            <div className="space-y-3">
-              <div className="rounded-2xl border border-white/15 bg-white/10 p-4">
-                <p className="text-sm text-[#d6f8ef]">{t("landing.trust.point1")}</p>
-              </div>
-              <div className="rounded-2xl border border-white/15 bg-white/10 p-4">
-                <p className="text-sm text-[#d6f8ef]">{t("landing.trust.point2")}</p>
-              </div>
-              <div className="rounded-2xl border border-white/15 bg-white/10 p-4">
-                <p className="text-sm text-[#d6f8ef]">{t("landing.trust.point3")}</p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <StatsCounter stats={quickStats} />
 
-        <section className="mx-auto mb-14 max-w-6xl">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {quickStats.map(({ label, value, icon: Icon }, index) => (
-              <article
-                key={label}
-                className="stagger-fade rounded-2xl border border-[#1f383c]/10 bg-white/80 p-5 shadow-[0_8px_18px_rgba(31,56,60,0.1)]"
-                style={{ animationDelay: `${index * 120}ms` }}
-              >
-                <Icon className="mb-3 h-5 w-5 text-[#235962]" />
-                <p className="font-display text-3xl font-semibold text-[#1f383c]">{value}</p>
-                <p className="mt-1 text-sm text-[#4d7076]">{label}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
+        <div className="px-4 sm:px-6 lg:px-10">
         <section className="mx-auto mb-16 max-w-6xl rounded-3xl border border-[#1b3f45]/15 bg-white/75 p-6 backdrop-blur-sm sm:p-8 lg:p-10">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -192,7 +237,9 @@ export default function Landing() {
             ))}
           </div>
         </section>
+        </div>
 
+        <div className="px-4 sm:px-6 lg:px-10">
         <section className="mx-auto mb-16 max-w-6xl">
           <div className="mb-7">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">{t("landing.features.label")}</p>
@@ -202,15 +249,135 @@ export default function Landing() {
             {featureBlocks.map(({ title, text, icon: Icon }, index) => (
               <article
                 key={title}
-                className="stagger-fade rounded-3xl border border-[#1c434a]/12 bg-white p-6 shadow-[0_12px_24px_rgba(26,55,61,0.08)]"
+                className="stagger-fade group rounded-3xl border border-[#1c434a]/12 bg-white p-6 shadow-[0_12px_24px_rgba(26,55,61,0.08)] transition-all duration-300 hover:shadow-[0_20px_40px_rgba(26,55,61,0.15)] hover:-translate-y-1"
                 style={{ animationDelay: `${index * 120}ms` }}
               >
-                <div className="mb-4 inline-flex rounded-xl bg-[#e8f7f2] p-3 text-[#1f555d]">
+                <div className="mb-4 inline-flex rounded-xl bg-[#e8f7f2] p-3 text-[#1f555d] transition-all duration-300 group-hover:scale-110">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="font-display text-xl font-semibold text-[#1f3c41]">{title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-[#567a80]">{text}</p>
               </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto mb-16 max-w-6xl">
+          <div className="mb-10 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">Pricing</p>
+            <h2 className="font-display mt-2 text-3xl font-semibold text-[#1f383c] sm:text-4xl">Simple, Transparent Pricing</h2>
+            <p className="mt-3 text-base text-[#567a80]">Choose the plan that fits your needs</p>
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {pricingPlans.map((plan, index) => (
+              <div
+                key={plan.name}
+                className={`stagger-fade rounded-3xl border p-7 transition-all duration-300 ${
+                  plan.highlighted
+                    ? "border-[#1f565f] bg-[#1f565f] text-white shadow-[0_20px_40px_rgba(31,86,95,0.25)] md:scale-105"
+                    : "border-[#1c434a]/12 bg-white shadow-[0_12px_24px_rgba(26,55,61,0.08)] hover:shadow-[0_20px_40px_rgba(26,55,61,0.15)] hover:-translate-y-1"
+                }`}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <h3 className={`font-display text-2xl font-semibold ${plan.highlighted ? "text-white" : "text-[#1f3c41]"}`}>{plan.name}</h3>
+                <p className={`mt-2 text-sm ${plan.highlighted ? "text-[#d0f4ea]" : "text-[#567a80]"}`}>{plan.description}</p>
+                <div className="mt-6 mb-6">
+                  <span className={`font-display text-4xl font-bold ${plan.highlighted ? "text-white" : "text-[#1f3c41]"}`}>
+                    {plan.price}
+                  </span>
+                  <span className={`ml-2 ${plan.highlighted ? "text-[#d0f4ea]" : "text-[#567a80]"}`}>{plan.period}</span>
+                </div>
+                <ul className="mb-8 space-y-3">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-3">
+                      <CheckCircle2 className={`h-5 w-5 mt-0.5 flex-shrink-0 ${plan.highlighted ? "text-[#bdf2e0]" : "text-[#1f565f]"}`} />
+                      <span className={`text-sm ${plan.highlighted ? "text-[#ecfffa]" : "text-[#567a80]"}`}>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  onClick={handleGetStarted}
+                  className={`w-full rounded-full font-semibold transition-all duration-300 ${
+                    plan.highlighted
+                      ? "bg-[#f6b26b] text-[#492309] hover:bg-[#f3a453]"
+                      : "bg-[#1f565f] text-white hover:bg-[#173f46]"
+                  }`}
+                >
+                  {plan.cta}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto mb-16 max-w-6xl rounded-3xl border border-[#1c434a]/15 bg-gradient-to-br from-[#f9f5eb]/50 to-white p-10">
+          <div className="mb-10 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">Integrations</p>
+            <h2 className="font-display mt-2 text-3xl font-semibold text-[#1f383c]">Works with tools you love</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+            {integrations.map((integration) => (
+              <div
+                key={integration.name}
+                className="stagger-fade group flex flex-col items-center justify-center rounded-2xl border border-[#1c434a]/12 bg-white p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+              >
+                <span className="text-4xl mb-3 group-hover:scale-125 transition-transform duration-300">{integration.icon}</span>
+                <span className="text-center text-sm font-medium text-[#567a80]">{integration.name}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto mb-16 max-w-6xl">
+          <div className="mb-10 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">Testimonials</p>
+            <h2 className="font-display mt-2 text-3xl font-semibold text-[#1f383c]">Trusted by legal professionals</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {testimonials.map((testimonial, index) => (
+              <div
+                key={index}
+                className="stagger-fade rounded-2xl border border-[#1c434a]/12 bg-white p-6 shadow-[0_12px_24px_rgba(26,55,61,0.08)]"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="flex gap-1 mb-4">
+                  {Array(testimonial.rating)
+                    .fill(0)
+                    .map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-[#f6b26b] text-[#f6b26b]" />
+                    ))}
+                </div>
+                <p className="text-sm leading-relaxed text-[#567a80] mb-4">"{testimonial.text}"</p>
+                <div className="flex items-center gap-3 border-t border-[#1c434a]/10 pt-4">
+                  <div className="h-10 w-10 rounded-full bg-[#e8f7f2]" />
+                  <div>
+                    <p className="font-semibold text-[#1f3c41]">{testimonial.name}</p>
+                    <p className="text-xs text-[#567a80]">{testimonial.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto mb-16 max-w-6xl rounded-3xl border border-[#1c434a]/15 bg-white p-10">
+          <div className="mb-10 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">Security & Compliance</p>
+            <h2 className="font-display mt-2 text-3xl font-semibold text-[#1f383c]">Enterprise-grade security</h2>
+            <p className="mt-3 text-base text-[#567a80]">Your data is protected with the highest standards</p>
+          </div>
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+            {securityFeatures.map(({ label, icon: Icon }, index) => (
+              <div
+                key={label}
+                className="stagger-fade flex flex-col items-center text-center"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="rounded-full bg-[#e8f7f2] p-4 mb-4">
+                  <Icon className="h-6 w-6 text-[#1f565f]" />
+                </div>
+                <p className="font-semibold text-[#1f3c41]">{label}</p>
+              </div>
             ))}
           </div>
         </section>
@@ -257,6 +424,7 @@ export default function Landing() {
             </Button>
           </div>
         </section>
+        </div>
       </main>
 
       {showDisclaimer && (
