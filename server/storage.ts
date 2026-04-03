@@ -120,11 +120,32 @@ export class MemStorage implements IStorage {
   }
 }
 
-const storage: IStorage = new MemStorage();
+const useDatabase = process.env.DATABASE_URL &&
+  process.env.DATABASE_URL !== 'postgresql://user:password@localhost:5432/nyayasetu' &&
+  process.env.DATABASE_URL.startsWith('postgresql://');
 
-console.log('═══════════════════════════════════════════════════════════');
-console.log('⚠ STORAGE: Using IN-MEMORY storage - data will be lost on server restart!');
-console.log('⚠ DATABASE: Disabled for frontend-only mode');
-console.log('═══════════════════════════════════════════════════════════');
+let storage: IStorage;
+
+async function initializeStorage() {
+  if (!useDatabase) {
+    throw new Error("DATABASE_URL is required. Supabase connection is mandatory.");
+  }
+
+  const { DbStorage } = await import('./db-storage.js');
+  const dbStorage = new DbStorage();
+  const ready = await dbStorage.isReady();
+
+  if (!ready) {
+    throw new Error("Supabase database connection failed. Check DATABASE_URL and network/DNS access.");
+  }
+
+  storage = dbStorage;
+  console.log('===========================================================');
+  console.log('STORAGE: Using PostgreSQL database');
+  console.log('DATABASE: Connected (Supabase only mode)');
+  console.log('===========================================================');
+}
+
+await initializeStorage();
 
 export { storage };

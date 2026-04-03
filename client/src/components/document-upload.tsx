@@ -113,6 +113,7 @@ export default function DocumentUpload({
         response = await fetch(API_ENDPOINTS.documents.upload, {
           method: 'POST',
           body: formData,
+          credentials: 'include',
           headers: {
             'Accept-Language': i18n.language,
           },
@@ -127,6 +128,7 @@ export default function DocumentUpload({
             'Content-Type': 'application/json',
             'Accept-Language': i18n.language,
           },
+          credentials: 'include',
           body: JSON.stringify({
             content: textContent,
             documentType: documentType === 'auto-detect' ? undefined : documentType,

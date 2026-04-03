@@ -3,10 +3,12 @@ import { Link, useLocation } from "wouter";
 import { Menu, ScanSearch, Scale, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LanguageSelector from "@/components/language-selector";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Navbar() {
   const [location] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -49,11 +51,31 @@ export default function Navbar() {
           <div className="flex h-10 items-center">
                 <LanguageSelector />
               </div>
-          <Link href="/dashboard">
-            <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]">
-              Get Started
-            </Button>
-          </Link>
+          {user ? (
+            <>
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]">
+                  Dashboard
+                </Button>
+              </Link>
+              <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]" onClick={logout}>
+                Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link href="/login">
+                <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]">
+                  Login
+                </Button>
+              </Link>
+              <Link href="/signup">
+                <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]">
+                  Sign up
+                </Button>
+              </Link>
+            </>
+          )}
           <div className="inline-flex items-center gap-2 rounded-full border border-[#2f5960]/20 bg-[#e9f7f2] px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#2d5960]">
           <ScanSearch className="h-3.5 w-3.5" />
           AI Analyzer
@@ -92,11 +114,37 @@ export default function Navbar() {
                 </div>
               </Link>
             <div className="border-t border-[#2f5960]/20 pt-3">
-              <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>
-                <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
-                  Get Started
-                </div>
-              </Link>
+              {user ? (
+                <>
+                  <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                    <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
+                      Dashboard
+                    </div>
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      await logout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="block w-full rounded-lg px-4 py-2 text-left text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                    <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
+                      Login
+                    </div>
+                  </Link>
+                  <Link href="/signup" onClick={() => setIsMenuOpen(false)}>
+                    <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
+                      Sign up
+                    </div>
+                  </Link>
+                </>
+              )}
             </div>
             </div>
           </div>

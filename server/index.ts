@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes.js";
+import { setupAuth } from "./auth.js";
 import { setupVite, log } from "./vite.js";
 
 const app = express();
@@ -81,6 +82,7 @@ app.use((req, res, next) => {
 
 // Initialize app for traditional server mode
 export async function createApp() {
+  await setupAuth(app);
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

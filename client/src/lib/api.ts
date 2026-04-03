@@ -5,6 +5,12 @@ const API_BASE_URL = import.meta.env.VITE_API_URL
 
 export const API_ENDPOINTS = {
   base: API_BASE_URL,
+  auth: {
+    register: `${API_BASE_URL}/api/auth-register`,
+    login: `${API_BASE_URL}/api/auth-login`,
+    logout: `${API_BASE_URL}/api/auth-logout`,
+    me: `${API_BASE_URL}/api/auth-me`,
+  },
   documents: {
     upload: `${API_BASE_URL}/api/documents-upload`,
     analyzeText: `${API_BASE_URL}/api/documents-analyze-text`,

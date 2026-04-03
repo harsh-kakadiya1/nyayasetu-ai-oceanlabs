@@ -6,8 +6,9 @@ import { analyzeDocument, answerQuestion } from "./services/groq.js";
 import { parseTextContent, parseUploadedDocument } from "./services/documentParser.js";
 import multer from "multer";
 import path from "path";
-
-const PUBLIC_USER_ID = "public";
+import passport from "passport";
+import bcrypt from "bcrypt";
+import { requireAuth } from "./auth.js";
 
 // Configure multer for file uploads (memory storage - no files saved to disk)
 const upload = multer({
@@ -35,6 +36,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('[HEALTH] Health check called');
     res.json({ status: "healthy", timestamp: new Date().toISOString() });
   });
+
+  app.post(["/api/auth/register", "/api/auth-register"], async (req, res) => {
+    try {
+      const { username, password } = req.body;
+
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await storage.createUser({ username, password: hashedPassword });
+
+      res.json({ id: user.id, username: user.username });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ error: "Failed to register user" });
+    }
+  });
+
+  app.post(["/api/auth/login", "/api/auth-login"], (req, res, next) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) {
+        return res.status(500).json({ error: "Login error" });
+      }
+
+      if (!user) {
+        return res.status(401).json({ error: info?.message || "Authentication failed" });
+      }
+
+      req.login(user, (loginErr: any) => {
+        if (loginErr) {
+          return res.status(500).json({ error: "Failed to establish session" });
+        }
+
+        res.json({ id: user.id, username: user.username });
+      });
+    })(req, res, next);
+  });
+
+  app.post(["/api/auth/logout", "/api/auth-logout"], (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ error: "Failed to logout" });
+      }
+      res.json({ message: "Logged out successfully" });
+    });
+  });
+
+  app.get(["/api/auth/me", "/api/auth-me"], (req, res) => {
+    if (req.isAuthenticated()) {
+      return res.json({ id: req.user.id, username: req.user.username });
+    }
+
+    return res.status(401).json({ error: "Not authenticated" });
+  });
   
   // Health check endpoint
   app.get("/", (req, res) => {
@@ -43,6 +104,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       status: "healthy",
       timestamp: new Date().toISOString(),
       endpoints: [
+        "POST /api/auth/register",
+        "POST /api/auth/login",
+        "POST /api/auth/logout",
+        "GET /api/auth/me",
         "POST /api/documents/upload",
         "POST /api/documents/analyze-text", 
         "GET /api/analysis/:id/messages",
@@ -57,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload and analyze document via file
-  app.post(["/api/documents/upload", "/api/documents-upload"], upload.single('document'), async (req, res) => {
+  app.post(["/api/documents/upload", "/api/documents-upload"], requireAuth, upload.single('document'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
@@ -71,7 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create document record
       const documentData = insertDocumentSchema.parse({
-        userId: PUBLIC_USER_ID,
+        userId: req.user.id,
         filename: req.file.originalname,
         content: parsedDoc.content,
         documentType: documentType || "auto-detect",
@@ -86,7 +151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create analysis record
       const analysisData = insertAnalysisSchema.parse({
-        userId: PUBLIC_USER_ID,
+        userId: req.user.id,
         documentId: document.id,
         summary: analysis.summary.summary,
         riskLevel: analysis.riskLevel,
@@ -119,7 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analyze document via text input
-  app.post(["/api/documents/analyze-text", "/api/documents-analyze-text"], async (req, res) => {
+  app.post(["/api/documents/analyze-text", "/api/documents-analyze-text"], requireAuth, async (req, res) => {
     try {
       const { content, documentType, summaryLength, language } = req.body;
       const preferredLanguage = language || req.headers['accept-language'] || 'en';
@@ -133,7 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create document record
       const documentData = insertDocumentSchema.parse({
-        userId: PUBLIC_USER_ID,
+        userId: req.user.id,
         filename: null,
         content: parsedDoc.content,
         documentType: documentType || "auto-detect",
@@ -148,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create analysis record
       const analysisData = insertAnalysisSchema.parse({
-        userId: PUBLIC_USER_ID,
+        userId: req.user.id,
         documentId: document.id,
         summary: analysis.summary.summary,
         riskLevel: analysis.riskLevel,
@@ -181,7 +246,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get analysis by ID
-  app.get(["/api/analysis/:id", "/api/analysis"], async (req, res) => {
+  app.get(["/api/analysis/:id", "/api/analysis"], requireAuth, async (req, res) => {
     try {
       const idFromParams = req.params.id;
       const idFromQuery = typeof req.query.analysisId === "string" ? req.query.analysisId : undefined;
@@ -197,6 +262,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Analysis not found" });
       }
 
+      if (analysis.userId !== req.user.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
       res.json(analysis);
     } catch (error) {
       console.error("Get analysis error:", error);
@@ -205,7 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get chat messages for an analysis
-  app.get(["/api/analysis/:id/messages", "/api/analysis-messages"], async (req, res) => {
+  app.get(["/api/analysis/:id/messages", "/api/analysis-messages"], requireAuth, async (req, res) => {
     try {
       const idFromParams = req.params.id;
       const idFromQuery = typeof req.query.analysisId === "string" ? req.query.analysisId : undefined;
@@ -216,7 +285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log(`[MESSAGES] GET request for analysis: ${id}`);
-      console.log(`[MESSAGES] User: ${PUBLIC_USER_ID}`);
+      console.log(`[MESSAGES] User: ${req.user?.id}`);
       console.log(`[MESSAGES] Looking up analysis in storage...`);
       const analysis = await storage.getAnalysis(id);
 
@@ -225,6 +294,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Analysis not found", analysisId: id });
       }
       console.log(`[MESSAGES] Found analysis: ${id}`);
+
+      if (analysis.userId !== req.user.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
 
       const messages = await storage.getChatMessages(id);
       res.json(messages);
@@ -235,7 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Ask question about document
-  app.post(["/api/analysis/:id/question", "/api/analysis-question"], async (req, res) => {
+  app.post(["/api/analysis/:id/question", "/api/analysis-question"], requireAuth, async (req, res) => {
     try {
       const idFromParams = req.params.id;
       const idFromQuery = typeof req.query.analysisId === "string" ? req.query.analysisId : undefined;
@@ -256,6 +329,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Analysis not found" });
       }
 
+      if (analysis.userId !== req.user.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
       const document = await storage.getDocument(analysis.documentId);
       if (!document) {
         return res.status(404).json({ error: "Document not found" });
@@ -270,7 +347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Save the Q&A
       const messageData = insertChatMessageSchema.parse({
-        userId: PUBLIC_USER_ID,
+        userId: req.user.id,
         analysisId: id,
         question,
         answer,
@@ -288,11 +365,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user analysis history
-  app.get("/api/history", async (req, res) => {
+  app.get("/api/history", requireAuth, async (req, res) => {
     try {
-      console.log(`[HISTORY] Fetching history for user: ${PUBLIC_USER_ID}`);
-      const analyses = await storage.getUserAnalyses(PUBLIC_USER_ID);
-      console.log(`[HISTORY] Found ${analyses?.length || 0} analyses for user ${PUBLIC_USER_ID}`);
+      console.log(`[HISTORY] Fetching history for user: ${req.user?.id}`);
+      const analyses = await storage.getUserAnalyses(req.user.id);
+      console.log(`[HISTORY] Found ${analyses?.length || 0} analyses for user ${req.user?.id}`);
       res.json(analyses || []);
     } catch (error) {
       console.error("[HISTORY] Get history error:", error);
