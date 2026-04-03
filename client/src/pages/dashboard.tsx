@@ -326,28 +326,76 @@ export default function Dashboard() {
 								<LoadingAnalysis />
 							</section>
 						) : showResults && analysisResult?.analysis ? (
-							<section className="space-y-3">
-								<div className="flex items-center gap-2">
-									<CheckCircle2 className="h-5 w-5 text-emerald-600" />
-									<h2 className="font-display text-xl font-semibold text-[#1d3b40]">{t("analysis.results")}</h2>
+							<section className="space-y-4">
+								<div className="flex items-center justify-between gap-3 pb-4 border-b border-[#1f565f]/10">
+									<div className="flex items-center gap-3">
+										<div className="flex-shrink-0 w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+											<CheckCircle2 className="h-5 w-5 text-emerald-600" />
+										</div>
+										<div>
+											<h2 className="font-display text-xl font-bold text-[#1f3c41]">{t("analysis.results")}</h2>
+											{analysisResult.document?.filename && <p className="text-xs text-[#6b8a90] mt-0.5">{analysisResult.document.filename}</p>}
+										</div>
+									</div>
 								</div>
-								{analysisResult.document?.filename && <p className="text-sm text-[#6b8a90]">{analysisResult.document.filename}</p>}
 								<AnalysisResults analysisData={analysisResult} />
 							</section>
 						) : selectedHistoryItem ? (
-							<section className="space-y-3">
-								<div className="flex items-center gap-2">
-									<History className="h-5 w-5 text-blue-600" />
-									<h2 className="font-display text-xl font-semibold text-[#1d3b40]">History Analysis Results</h2>
+							<section className="space-y-4">
+								<div className="flex items-center justify-between gap-3 pb-4 border-b border-[#1f565f]/10">
+									<div className="flex items-center gap-3">
+										<div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+											<History className="h-5 w-5 text-blue-600" />
+										</div>
+										<div>
+											<h2 className="font-display text-xl font-bold text-[#1f3c41]">Analysis Results</h2>
+											<p className="text-xs text-[#6b8a90] mt-0.5">From {new Date(selectedHistoryItem.createdAt).toLocaleDateString()}</p>
+										</div>
+									</div>
 								</div>
 								<HistoryAnalysisResults analysis={selectedHistoryItem} />
 							</section>
-						) : (
-							<section className="py-8">
-								<h3 className="font-display text-xl font-semibold text-[#1f3d42]">{t("welcome.title")}</h3>
-								<p className="mt-3 max-w-md text-sm text-[#557980]">{t("welcome.description")}</p>
-							</section>
-						)}
+							) : (
+								<section className="py-12 px-6 rounded-2xl bg-gradient-to-br from-white to-[#f8f5f0] border border-[#1f565f]/10 shadow-[0_4px_16px_rgba(31,86,95,0.06)]">
+									<div className="max-w-lg">
+										<div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full bg-[#e8f7f2] border border-[#1f565f]/20">
+											<MessageSquare className="h-3.5 w-3.5 text-[#1f565f]" />
+											<span className="text-xs font-medium text-[#1f565f]">Getting Started</span>
+										</div>
+										<h3 className="font-display text-2xl font-bold text-[#1f3c41]">{t("welcome.title")}</h3>
+										<p className="mt-3 text-base leading-relaxed text-[#5f8187]">{t("welcome.description")}</p>
+										<div className="mt-6 flex flex-col gap-3">
+											<div className="flex gap-3 items-start">
+												<div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#e8f7f2] flex items-center justify-center mt-0.5">
+													<FileText className="h-4 w-4 text-[#1f565f]" />
+												</div>
+												<div>
+													<p className="text-sm font-medium text-[#1f3c41]">Upload or paste your document</p>
+													<p className="text-xs text-[#5f8187] mt-1">PDF, DOCX, or plain text formats supported</p>
+												</div>
+											</div>
+											<div className="flex gap-3 items-start">
+												<div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#e8f7f2] flex items-center justify-center mt-0.5">
+													<ScanSearch className="h-4 w-4 text-[#1f565f]" />
+												</div>
+												<div>
+													<p className="text-sm font-medium text-[#1f3c41]">AI analysis in seconds</p>
+													<p className="text-xs text-[#5f8187] mt-1">Get comprehensive risk assessment and recommendations</p>
+												</div>
+											</div>
+											<div className="flex gap-3 items-start">
+												<div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#e8f7f2] flex items-center justify-center mt-0.5">
+													<Clock className="h-4 w-4 text-[#1f565f]" />
+												</div>
+												<div>
+													<p className="text-sm font-medium text-[#1f3c41]">View history anytime</p>
+													<p className="text-xs text-[#5f8187] mt-1">All your past analyses are saved in the sidebar</p>
+												</div>
+											</div>
+										</div>
+									</div>
+								</section>
+							)}
 					</div>
 				</main>
 			</div>
