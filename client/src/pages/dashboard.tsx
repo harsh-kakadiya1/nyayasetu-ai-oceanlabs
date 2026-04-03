@@ -183,44 +183,41 @@ export default function Dashboard() {
 				{/* Tab Content */}
 				<div>
 					{activeTab === "analyze" ? (
-						<div className="grid grid-cols-1 gap-6 xl:grid-cols-[320px_1fr]">
+						<div className="grid grid-cols-1 gap-6 xl:grid-cols-[380px_1fr]">
 							{/* Left Sidebar */}
-							<aside className="space-y-2">
-								{/* Header Card - Not Sticky */}
-								<div className="rounded-2xl border border-[#22484f]/20 bg-gradient-to-br from-[#1f4a52] to-[#1a3d45] p-3 text-[#e7fff8] shadow-xl">
-									<div className="flex items-start gap-2 mb-2">
-										<div className="flex-shrink-0 rounded-lg bg-[#f6b26b]/20 p-1.5">
-											<Upload className="h-4 w-4 text-[#f6b26b]" />
+							<aside className="space-y-5 xl:sticky xl:top-6 xl:self-start">
+								{/* Upload Card */}
+								<div className="rounded-3xl border border-[#22484f]/20 bg-gradient-to-br from-[#1f4a52] to-[#1a3d45] p-6 text-[#e7fff8] shadow-xl">
+									<div className="flex items-start gap-3 mb-3">
+										<div className="flex-shrink-0 rounded-lg bg-[#f6b26b]/20 p-2">
+											<Upload className="h-5 w-5 text-[#f6b26b]" />
 										</div>
 										<div>
-											<p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#b9e9db]">{t("upload.title")}</p>
-											<h2 className="font-display text-base font-semibold text-white">{t("navigation.getStarted")}</h2>
+											<p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#b9e9db]">{t("upload.title")}</p>
+											<h2 className="font-display text-xl font-semibold text-white">{t("navigation.getStarted")}</h2>
 										</div>
 									</div>
-									<p className="text-xs leading-relaxed text-[#d0f4ea]">
+									<p className="text-sm leading-relaxed text-[#d0f4ea]">
 										{t("welcome.description")}
 									</p>
 								</div>
 
-								{/* Sticky Section - Upload + Tip */}
-								<div className="space-y-2 xl:sticky xl:top-6 xl:self-start h-fit">
-									{/* Upload Component */}
-									<div className="rounded-2xl border border-[#1f474d]/15 bg-white/90 p-2 shadow-lg">
-										<DocumentUpload
-											onAnalysisStart={handleAnalysisStart}
-											onAnalysisComplete={handleAnalysisComplete}
-											onAnalysisError={handleAnalysisError}
-											isAnalyzing={isAnalyzing}
-										/>
-									</div>
+								{/* Upload Component */}
+								<div className="rounded-3xl border border-[#1f474d]/15 bg-white/90 p-4 shadow-lg">
+									<DocumentUpload
+										onAnalysisStart={handleAnalysisStart}
+										onAnalysisComplete={handleAnalysisComplete}
+										onAnalysisError={handleAnalysisError}
+										isAnalyzing={isAnalyzing}
+									/>
+								</div>
 
-									{/* Tip Card */}
-									<div className="rounded-xl border border-[#284d54]/20 bg-gradient-to-br from-[#f5fcfa] to-[#f9fffe] p-2.5">
-										<p className="font-semibold text-[#1f565f] text-xs">{t("common.next")}</p>
-										<p className="mt-1 text-xs text-[#41656b] leading-relaxed">
-											{t("upload.detailed")}, {t("upload.brief")}
-										</p>
-									</div>
+								{/* Tip Card */}
+								<div className="rounded-2xl border border-[#284d54]/20 bg-gradient-to-br from-[#f5fcfa] to-[#f9fffe] p-4">
+									<p className="font-semibold text-[#1f565f] text-sm">{t("common.next")}</p>
+									<p className="mt-2 text-sm text-[#41656b] leading-relaxed">
+										{t("upload.detailed")}, {t("upload.brief")}
+									</p>
 								</div>
 							</aside>
 
