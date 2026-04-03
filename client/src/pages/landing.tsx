@@ -156,8 +156,8 @@ export default function Landing() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_20%_10%,rgba(189,242,224,0.5),transparent_35%),radial-gradient(circle_at_85%_20%,rgba(255,224,178,0.55),transparent_32%),linear-gradient(180deg,#faf7f0_0%,#f3ece0_45%,#eef5f2_100%)]">
-      <div className="absolute inset-0 pointer-events-none opacity-40 bg-[linear-gradient(rgba(29,59,64,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(29,59,64,0.06)_1px,transparent_1px)] bg-[size:36px_36px]" />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#f8f5f0] via-[#f3ede5] to-[#eef7f4]">
+      <div className="absolute inset-0 pointer-events-none opacity-[0.35] bg-[radial-gradient(circle_at_20%_10%,rgba(31,86,95,0.08),transparent_40%),radial-gradient(circle_at_85%_90%,rgba(189,242,224,0.06),transparent_35%)]" />
 
       <main className="relative z-10 pb-16">
         <HeroSection
@@ -173,7 +173,7 @@ export default function Landing() {
         <StatsCounter stats={quickStats} />
 
         <div className="mt-12 px-4 sm:mt-16 sm:px-6 lg:px-10">
-        <section className="mx-auto mb-16 max-w-6xl rounded-3xl border border-[#1b3f45]/15 bg-white/75 p-6 backdrop-blur-sm sm:p-8 lg:p-10">
+        <section className="mx-auto mb-16 max-w-6xl rounded-2xl border border-[#1f565f]/12 bg-white/80 p-6 backdrop-blur-md shadow-[0_8px_32px_rgba(31,86,95,0.06)] sm:p-8 lg:p-10">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#547b82]">{t("landing.workflow.label")}</p>
@@ -209,18 +209,18 @@ export default function Landing() {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">{t("landing.features.label")}</p>
             <h2 className="font-display mt-2 text-2xl font-semibold text-[#1f383c] sm:text-3xl">{t("landing.features.title")}</h2>
           </div>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {featureBlocks.map(({ title, text, icon: Icon }, index) => (
               <article
                 key={title}
-                className="stagger-fade group rounded-3xl border border-[#1c434a]/12 bg-white p-6 shadow-[0_12px_24px_rgba(26,55,61,0.08)] transition-all duration-300 hover:shadow-[0_20px_40px_rgba(26,55,61,0.15)] hover:-translate-y-1"
+                className="stagger-fade group rounded-2xl border border-[#1f565f]/10 bg-white/95 p-6 shadow-[0_4px_16px_rgba(31,86,95,0.06)] transition-all duration-300 hover:shadow-[0_12px_32px_rgba(31,86,95,0.12)] hover:-translate-y-1"
                 style={{ animationDelay: `${index * 120}ms` }}
               >
-                <div className="mb-4 inline-flex rounded-xl bg-[#e8f7f2] p-3 text-[#1f555d] transition-all duration-300 group-hover:scale-110">
+                <div className="mb-4 inline-flex rounded-lg bg-gradient-to-br from-[#e8f7f2] to-[#d0f4ea] p-3 text-[#1f565f] transition-all duration-300 group-hover:scale-110">
                   <Icon className="h-5 w-5" />
                 </div>
-                <h3 className="font-display text-xl font-semibold text-[#1f3c41]">{title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-[#567a80]">{text}</p>
+                <h3 className="font-display text-lg font-semibold text-[#1f3c41]">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[#567a80]">{text}</p>
               </article>
             ))}
           </div>
@@ -232,14 +232,14 @@ export default function Landing() {
             <h2 className="font-display mt-2 text-3xl font-semibold text-[#1f383c] sm:text-4xl">{t("landing.pricing.title")}</h2>
             <p className="mt-3 text-base text-[#567a80]">{t("landing.pricing.subtitle")}</p>
           </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 items-stretch">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3 items-stretch">
             {pricingPlans.map((plan, index) => (
               <div
                 key={plan.name}
-                className={`stagger-fade rounded-3xl border p-7 transition-all duration-300 flex flex-col ${
+                className={`stagger-fade rounded-2xl border p-6 transition-all duration-300 flex flex-col ${
                   plan.highlighted
-                    ? "border-[#1f565f] bg-[#1f565f] text-white shadow-[0_20px_40px_rgba(31,86,95,0.25)] md:scale-105"
-                    : "border-[#1c434a]/12 bg-white shadow-[0_12px_24px_rgba(26,55,61,0.08)] hover:shadow-[0_20px_40px_rgba(26,55,61,0.15)] hover:-translate-y-1"
+                    ? "border-[#1f565f] bg-gradient-to-br from-[#1f565f] to-[#173f46] text-white shadow-[0_16px_40px_rgba(31,86,95,0.2)] md:scale-[1.02]"
+                    : "border-[#1f565f]/10 bg-white/95 shadow-[0_4px_16px_rgba(31,86,95,0.06)] hover:shadow-[0_12px_32px_rgba(31,86,95,0.12)] hover:-translate-y-1"
                 }`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
@@ -280,11 +280,11 @@ export default function Landing() {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">{t("landing.faqs.label")}</p>
             <h2 className="font-display mt-2 text-2xl font-semibold text-[#1f383c] sm:text-3xl">{t("landing.faqs.title")}</h2>
           </div>
-          <div className="rounded-3xl border border-[#1b3f45]/15 bg-white/75 p-6 backdrop-blur-sm sm:p-8">
+          <div className="rounded-2xl border border-[#1f565f]/12 bg-white/80 p-6 backdrop-blur-md shadow-[0_8px_32px_rgba(31,86,95,0.06)] sm:p-8">
             <Accordion type="single" collapsible className="w-full">
               {faqs.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`} className="border-[#1c434a]/10">
-                  <AccordionTrigger className="text-left text-base font-medium text-[#1f3c41] hover:no-underline">
+                <AccordionItem key={index} value={`item-${index}`} className="border-[#1f565f]/10">
+                  <AccordionTrigger className="text-left text-base font-medium text-[#1f3c41] hover:no-underline hover:text-[#1f565f] transition-colors">
                     {faq.question}
                   </AccordionTrigger>
                   <AccordionContent className="text-sm leading-relaxed text-[#567a80]">
@@ -296,21 +296,21 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl rounded-3xl border border-[#1f444b]/20 bg-[#1f444b] p-7 text-[#ecfffa] sm:p-10">
+        <section className="mx-auto max-w-6xl rounded-2xl border border-[#1f565f]/15 bg-gradient-to-r from-[#1f565f] to-[#1a4a53] p-7 text-white sm:p-10 shadow-[0_12px_32px_rgba(31,86,95,0.15)]">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
               <h2 className="font-display text-3xl font-semibold sm:text-4xl">{t("landing.cta.title")}</h2>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#d0f4ea] sm:text-base">
                 {t("home.security.subtitle")}
               </p>
-              <div className="mt-5 flex items-center gap-2 text-sm text-[#b6e8da]">
+              <div className="mt-5 flex items-center gap-2 text-sm text-[#bde5de]">
                 <CheckCircle2 className="h-4 w-4" />
                 {t("landing.cta.subpoint")}
               </div>
             </div>
             <Button
               onClick={handleGetStarted}
-              className="h-12 rounded-full bg-[#f6b26b] px-8 text-sm font-semibold text-[#492309] hover:bg-[#f3a453]"
+              className="h-12 rounded-full bg-[#f6b26b] px-8 text-sm font-semibold text-[#492309] hover:bg-[#f3a453] shadow-[0_8px_16px_rgba(246,178,107,0.3)] transition-all duration-300"
             >
               {t("navigation.getStarted")}
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -355,9 +355,9 @@ export default function Landing() {
         </div>
       )}
 
-      <footer className="relative z-10 mt-16 border-t border-[#2a4d54]/20 bg-white/70 px-4 py-8 sm:px-6 lg:px-10">
+      <footer className="relative z-10 mt-16 border-t border-[#1f565f]/10 bg-white/60 backdrop-blur-sm px-4 py-8 sm:px-6 lg:px-10">
         <div className="mx-auto max-w-6xl">
-          <div className="text-center text-sm text-[#4d7076]">
+          <div className="text-center text-sm text-[#5f8187]">
             <p>{t("home.footer.copyright")}</p>
           </div>
         </div>

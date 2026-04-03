@@ -127,17 +127,17 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-[#2d545c]/15 bg-[#f9f5eb]/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-40 border-b border-[#1f565f]/12 bg-white/70 backdrop-blur-xl shadow-[0_2px_8px_rgba(31,86,95,0.04)]">
       <div className="w-full px-3 sm:px-4 lg:px-6">
       <div className="flex min-h-[68px] items-center justify-between py-3">
           {/* Logo & Branding */}
-        <div className="flex flex-shrink-0 items-center space-x-2 sm:space-x-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1f525a] sm:h-9 sm:w-9">
-          <Scale className="h-4 w-4 text-[#e8fff7] sm:h-5 sm:w-5" />
+        <div className="flex flex-shrink-0 items-center space-x-2.5 sm:space-x-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#1f565f] to-[#173f46] sm:h-9 sm:w-9 shadow-[0_4px_12px_rgba(31,86,95,0.2)]">
+          <Scale className="h-4 w-4 text-white sm:h-5 sm:w-5" />
             </div>
             <div className="flex flex-col justify-center">
-          <span className="font-display whitespace-nowrap text-base font-semibold leading-tight text-[#1f3c41] sm:text-lg">{t("brand.name")}</span>
-          <span className="-mt-1 hidden text-xs text-[#61868d] sm:block">{t("brand.tagline")}</span>
+          <span className="font-display whitespace-nowrap text-base font-bold leading-tight text-[#1f3c41] sm:text-lg">{t("brand.name")}</span>
+          <span className="-mt-1 hidden text-[11px] font-medium text-[#6b8a90] sm:block">{t("brand.tagline")}</span>
             </div>
           </div>
 

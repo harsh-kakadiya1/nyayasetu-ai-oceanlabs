@@ -218,7 +218,7 @@ export default function Dashboard() {
 	};
 
 	return (
-		<div className="h-[calc(100dvh-68px)] overflow-hidden bg-gradient-to-br from-[#f8f4ea] via-[#edf4f1] to-[#f4f8f7]">
+		<div className="h-[calc(100dvh-68px)] overflow-hidden bg-gradient-to-br from-[#f8f5f0] via-[#f0f7f4] to-[#f8f9f8]">
 			<div className="flex h-full overflow-hidden">
 				{!sidebarOpen && (
 					<button
@@ -229,11 +229,11 @@ export default function Dashboard() {
 					</button>
 				)}
 
-				<aside className={`${sidebarOpen ? "w-72" : "w-0"} flex h-full flex-shrink-0 flex-col overflow-hidden border-r border-[#2d575e]/15 bg-white/70 backdrop-blur-sm transition-all duration-300`}>
-					<div className="flex items-center justify-between border-b border-[#2d575e]/10 px-4 py-3">
+				<aside className={`${sidebarOpen ? "w-72" : "w-0"} flex h-full flex-shrink-0 flex-col overflow-hidden border-r border-[#1f565f]/10 bg-white/80 backdrop-blur-md transition-all duration-300 shadow-[2px_0_12px_rgba(31,86,95,0.04)]`}>
+					<div className="flex items-center justify-between border-b border-[#1f565f]/10 bg-gradient-to-r from-[#f8f5f0] to-[#f3f1ee] px-4 py-3.5">
 						<div className="flex items-center gap-2">
-							<History className="h-4 w-4 text-[#4a7379]" />
-							<span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#4a7379]">History</span>
+							<History className="h-4 w-4 text-[#1f565f]" />
+							<span className="text-xs font-bold uppercase tracking-[0.14em] text-[#1f565f]">History</span>
 						</div>
 						<button onClick={() => setSidebarOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6b8a90] transition-colors hover:bg-[#eef8f5] hover:text-[#1f565f]">
 							<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -242,14 +242,14 @@ export default function Dashboard() {
 						</button>
 					</div>
 
-					<div className="border-b border-[#2d575e]/10 px-4 py-3">
+					<div className="border-b border-[#1f565f]/10 px-4 py-3">
 						<Button
 							onClick={() => {
 								setShowResults(false);
 								setAnalysisResult(null);
 								setSelectedHistoryItem(null);
 							}}
-							className="h-10 w-full rounded-xl bg-[#1f565f] text-white hover:bg-[#173f46]"
+							className="h-10 w-full rounded-lg bg-gradient-to-r from-[#1f565f] to-[#173f46] text-white hover:from-[#173f46] hover:to-[#0f2b31] shadow-[0_4px_12px_rgba(31,86,95,0.15)] transition-all duration-300"
 						>
 							<Upload className="mr-2 h-4 w-4" />
 							{t("analysis.newAnalysis")}
@@ -260,33 +260,33 @@ export default function Dashboard() {
 						{historyLoading ? (
 							<div className="space-y-2">
 								{[...Array(4)].map((_, index) => (
-									<div key={index} className="h-14 animate-pulse rounded-lg bg-gray-100/80" />
+									<div key={index} className="h-14 animate-pulse rounded-lg bg-[#f0f5f3]/80" />
 								))}
 							</div>
 						) : analyses.length === 0 ? (
 							<div className="px-4 py-8 text-center">
-								<FileText className="mx-auto mb-2 h-8 w-8 text-[#c4d4d6]" />
-								<p className="text-xs text-[#7a9a9e]">{t("history.empty")}</p>
+								<FileText className="mx-auto mb-2 h-8 w-8 text-[#cdd7d9]" />
+								<p className="text-xs text-[#7f9a9f]">{t("history.empty")}</p>
 							</div>
 						) : (
 							<div className="space-y-1">
 								{analyses.map((analysis) => (
-									<div key={analysis.id} className="group flex items-start gap-2 rounded-xl px-2 py-2 transition-colors hover:bg-[#eef8f5]">
+									<div key={analysis.id} className="group flex items-start gap-2 rounded-lg px-2 py-2 transition-colors hover:bg-[#e8f4f1]">
 										<button
 											onClick={() => handleHistoryClick(analysis)}
 											className="flex min-w-0 flex-1 items-start gap-2 rounded-lg px-1 py-1 text-left"
 										>
-											<FileText className="mt-0.5 h-4 w-4 text-[#7a9a9e] group-hover:text-[#1f565f]" />
+											<FileText className="mt-0.5 h-4 w-4 text-[#7f9a9f] group-hover:text-[#1f565f]" />
 											<div className="min-w-0 flex-1">
 												<p className="truncate text-sm font-medium text-[#1d3b40]">{analysis.summary.slice(0, 45)}...</p>
-												<p className="mt-1 text-[10px] text-[#7a9a9e]">{formatDate(analysis.createdAt)}</p>
+												<p className="mt-1 text-[10px] text-[#7f9a9f]">{formatDate(analysis.createdAt)}</p>
 											</div>
 										</button>
 										<button
 											type="button"
 											onClick={() => handleDeleteHistoryItem(analysis.id)}
 											disabled={deletingHistoryId === analysis.id}
-											className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-[#7f989d] opacity-0 transition-colors hover:bg-[#f7dede] hover:text-[#c0392b] group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-60"
+											className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-[#a0b3b6] opacity-0 transition-colors hover:bg-[#fde8e8] hover:text-[#d32f2f] group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-60"
 											aria-label="Delete history item"
 										>
 											<Trash2 className="h-3.5 w-3.5" />
@@ -299,18 +299,18 @@ export default function Dashboard() {
 				</aside>
 
 				<main className="h-full flex-1 overflow-y-auto">
-					<div className="mx-auto max-w-5xl px-6 py-6 lg:px-8 lg:py-8">
-						<div className="mb-6 flex items-end justify-between gap-4">
+					<div className="mx-auto max-w-6xl px-6 py-6 lg:px-8 lg:py-8">
+						<div className="mb-8 flex items-end justify-between gap-4">
 							{(!showResults || isAnalyzing) && !selectedHistoryItem && (
 								<div>
-									<h1 className="font-display text-2xl font-semibold text-[#1d3b40]">{t("analysis.title")}</h1>
-									<p className="mt-1 text-sm text-[#6b8a90]">{t("analysis.subtitle")}</p>
+									<h1 className="font-display text-3xl font-bold text-[#1f3c41]">{t("analysis.title")}</h1>
+									<p className="mt-2 text-base text-[#6b8a90]">{t("analysis.subtitle")}</p>
 								</div>
 							)}
 							{selectedHistoryItem && (
 								<div>
-									<h1 className="font-display text-2xl font-semibold text-[#1d3b40]">Analysis History</h1>
-									<p className="mt-1 text-sm text-[#6b8a90]">Viewing previous analysis from {new Date(selectedHistoryItem.createdAt).toLocaleDateString()}</p>
+									<h1 className="font-display text-3xl font-bold text-[#1f3c41]">Analysis History</h1>
+									<p className="mt-2 text-base text-[#6b8a90]">Viewing previous analysis from {new Date(selectedHistoryItem.createdAt).toLocaleDateString()}</p>
 								</div>
 							)}
 						</div>
@@ -326,28 +326,76 @@ export default function Dashboard() {
 								<LoadingAnalysis />
 							</section>
 						) : showResults && analysisResult?.analysis ? (
-							<section className="space-y-3">
-								<div className="flex items-center gap-2">
-									<CheckCircle2 className="h-5 w-5 text-emerald-600" />
-									<h2 className="font-display text-xl font-semibold text-[#1d3b40]">{t("analysis.results")}</h2>
+							<section className="space-y-4">
+								<div className="flex items-center justify-between gap-3 pb-4 border-b border-[#1f565f]/10">
+									<div className="flex items-center gap-3">
+										<div className="flex-shrink-0 w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+											<CheckCircle2 className="h-5 w-5 text-emerald-600" />
+										</div>
+										<div>
+											<h2 className="font-display text-xl font-bold text-[#1f3c41]">{t("analysis.results")}</h2>
+											{analysisResult.document?.filename && <p className="text-xs text-[#6b8a90] mt-0.5">{analysisResult.document.filename}</p>}
+										</div>
+									</div>
 								</div>
-								{analysisResult.document?.filename && <p className="text-sm text-[#6b8a90]">{analysisResult.document.filename}</p>}
 								<AnalysisResults analysisData={analysisResult} />
 							</section>
 						) : selectedHistoryItem ? (
-							<section className="space-y-3">
-								<div className="flex items-center gap-2">
-									<History className="h-5 w-5 text-blue-600" />
-									<h2 className="font-display text-xl font-semibold text-[#1d3b40]">History Analysis Results</h2>
+							<section className="space-y-4">
+								<div className="flex items-center justify-between gap-3 pb-4 border-b border-[#1f565f]/10">
+									<div className="flex items-center gap-3">
+										<div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+											<History className="h-5 w-5 text-blue-600" />
+										</div>
+										<div>
+											<h2 className="font-display text-xl font-bold text-[#1f3c41]">Analysis Results</h2>
+											<p className="text-xs text-[#6b8a90] mt-0.5">From {new Date(selectedHistoryItem.createdAt).toLocaleDateString()}</p>
+										</div>
+									</div>
 								</div>
 								<HistoryAnalysisResults analysis={selectedHistoryItem} />
 							</section>
-						) : (
-							<section className="py-8">
-								<h3 className="font-display text-xl font-semibold text-[#1f3d42]">{t("welcome.title")}</h3>
-								<p className="mt-3 max-w-md text-sm text-[#557980]">{t("welcome.description")}</p>
-							</section>
-						)}
+							) : (
+								<section className="py-12 px-6 rounded-2xl bg-gradient-to-br from-white to-[#f8f5f0] border border-[#1f565f]/10 shadow-[0_4px_16px_rgba(31,86,95,0.06)]">
+									<div className="max-w-lg">
+										<div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full bg-[#e8f7f2] border border-[#1f565f]/20">
+											<MessageSquare className="h-3.5 w-3.5 text-[#1f565f]" />
+											<span className="text-xs font-medium text-[#1f565f]">Getting Started</span>
+										</div>
+										<h3 className="font-display text-2xl font-bold text-[#1f3c41]">{t("welcome.title")}</h3>
+										<p className="mt-3 text-base leading-relaxed text-[#5f8187]">{t("welcome.description")}</p>
+										<div className="mt-6 flex flex-col gap-3">
+											<div className="flex gap-3 items-start">
+												<div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#e8f7f2] flex items-center justify-center mt-0.5">
+													<FileText className="h-4 w-4 text-[#1f565f]" />
+												</div>
+												<div>
+													<p className="text-sm font-medium text-[#1f3c41]">Upload or paste your document</p>
+													<p className="text-xs text-[#5f8187] mt-1">PDF, DOCX, or plain text formats supported</p>
+												</div>
+											</div>
+											<div className="flex gap-3 items-start">
+												<div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#e8f7f2] flex items-center justify-center mt-0.5">
+													<ScanSearch className="h-4 w-4 text-[#1f565f]" />
+												</div>
+												<div>
+													<p className="text-sm font-medium text-[#1f3c41]">AI analysis in seconds</p>
+													<p className="text-xs text-[#5f8187] mt-1">Get comprehensive risk assessment and recommendations</p>
+												</div>
+											</div>
+											<div className="flex gap-3 items-start">
+												<div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#e8f7f2] flex items-center justify-center mt-0.5">
+													<Clock className="h-4 w-4 text-[#1f565f]" />
+												</div>
+												<div>
+													<p className="text-sm font-medium text-[#1f3c41]">View history anytime</p>
+													<p className="text-xs text-[#5f8187] mt-1">All your past analyses are saved in the sidebar</p>
+												</div>
+											</div>
+										</div>
+									</div>
+								</section>
+							)}
 					</div>
 				</main>
 			</div>

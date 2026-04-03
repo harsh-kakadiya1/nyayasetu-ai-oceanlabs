@@ -98,6 +98,8 @@
     overflow-x: hidden;
     /* Improve touch interactions */
     touch-action: manipulation;
+    /* SaaS polish */
+    line-height: 1.6;
   }
 
   .font-display {
@@ -118,6 +120,11 @@
     touch-action: manipulation;
     /* Minimum 44px touch target */
     min-height: 44px;
+  }
+
+  /* SaaS-style button transitions */
+  button, [role="button"] {
+    transition: all 0.2s ease-in-out;
   }
 
   /* Custom Scrollbar */
