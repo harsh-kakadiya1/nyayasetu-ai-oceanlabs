@@ -110,6 +110,27 @@ export class DbStorage {
     return result.rows[0];
   }
 
+  async updateUsername(userId: string, username: string): Promise<User | undefined> {
+    await ensureTables();
+    try {
+      const result = await getPool().query<User>(
+        `
+        UPDATE users
+        SET username = $2
+        WHERE id = $1
+        RETURNING id, username, password
+        `,
+        [userId, username],
+      );
+      return result.rows[0];
+    } catch (error: any) {
+      if (error?.code === "23505") {
+        throw new Error("Username already exists");
+      }
+      throw error;
+    }
+  }
+
   async getUserByUsername(username: string): Promise<User | undefined> {
     await ensureTables();
     const result = await getPool().query<User>(
@@ -260,6 +281,38 @@ export class DbStorage {
       [userId],
     );
     return result.rows;
+  }
+
+  async clearUserHistory(userId: string): Promise<number> {
+    await ensureTables();
+
+    await getPool().query(
+      `DELETE FROM chat_messages WHERE user_id = $1`,
+      [userId],
+    );
+
+    const result = await getPool().query(
+      `DELETE FROM analyses WHERE user_id = $1`,
+      [userId],
+    );
+
+    return result.rowCount || 0;
+  }
+
+  async deleteUserAnalysis(userId: string, analysisId: string): Promise<boolean> {
+    await ensureTables();
+
+    await getPool().query(
+      `DELETE FROM chat_messages WHERE analysis_id = $1`,
+      [analysisId],
+    );
+
+    const result = await getPool().query(
+      `DELETE FROM analyses WHERE id = $1 AND user_id = $2`,
+      [analysisId, userId],
+    );
+
+    return (result.rowCount || 0) > 0;
   }
 
   async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {

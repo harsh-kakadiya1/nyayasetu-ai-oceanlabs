@@ -97,6 +97,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.status(401).json({ error: "Not authenticated" });
   });
 
+  app.patch(["/api/auth/profile", "/api/auth-profile"], requireAuth, async (req, res) => {
+    try {
+      const username = String(req.body?.username || "").trim();
+
+      if (!username || username.length < 3) {
+        return res.status(400).json({ error: "Username must be at least 3 characters" });
+      }
+
+      const updatedUser = await storage.updateUsername(req.user.id, username);
+
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json({ id: updatedUser.id, username: updatedUser.username });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update profile";
+      if (message.includes("already exists")) {
+        return res.status(409).json({ error: message });
+      }
+      res.status(500).json({ error: message });
+    }
+  });
+
   // Google OAuth Routes
   app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
@@ -414,6 +438,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("[HISTORY] Get history error:", error);
       res.status(500).json({ error: "Failed to retrieve history" });
+    }
+  });
+
+  app.delete("/api/history", requireAuth, async (req, res) => {
+    try {
+      const removedCount = await storage.clearUserHistory(req.user.id);
+      res.json({ success: true, removedCount });
+    } catch (error) {
+      console.error("[HISTORY] Clear history error:", error);
+      res.status(500).json({ error: "Failed to clear history" });
+    }
+  });
+
+  app.delete("/api/history/:analysisId", requireAuth, async (req, res) => {
+    try {
+      const { analysisId } = req.params;
+      const analysis = await storage.getAnalysis(analysisId);
+
+      if (!analysis) {
+        return res.status(404).json({ error: "History item not found" });
+      }
+
+      if (analysis.userId !== req.user.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const deleted = await storage.deleteUserAnalysis(req.user.id, analysisId);
+      if (!deleted) {
+        return res.status(500).json({ error: "Failed to delete history item" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[HISTORY] Delete item error:", error);
+      res.status(500).json({ error: "Failed to delete history item" });
     }
   });
 

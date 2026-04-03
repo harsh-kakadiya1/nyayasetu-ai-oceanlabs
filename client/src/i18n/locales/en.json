@@ -89,6 +89,9 @@
   },
   "analysis": {
     "title": "Analysis Results",
+    "newAnalysis": "New Analysis",
+    "results": "Analysis Results",
+    "subtitle": "Upload a document to get AI-powered legal analysis",
     "overview": "Analysis Overview",
     "documentLength": "Document Length",
     "words": "words",
@@ -132,6 +135,9 @@
   "analyzing": {
     "title": "Analyzing Your Document",
     "description": "Our AI is carefully reviewing your document to provide comprehensive insights..."
+  },
+  "history": {
+    "empty": "No analyses yet"
   },
   "footer": {
     "product": "Product",

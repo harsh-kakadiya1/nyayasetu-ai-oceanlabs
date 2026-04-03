@@ -5,6 +5,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUsername(userId: string, username: string): Promise<User | undefined>;
   
   createDocument(document: InsertDocument): Promise<Document>;
   getDocument(id: string): Promise<Document | undefined>;
@@ -13,6 +14,8 @@ export interface IStorage {
   createAnalysis(analysis: InsertAnalysis): Promise<Analysis>;
   getAnalysis(id: string): Promise<Analysis | undefined>;
   getUserAnalyses(userId: string): Promise<Analysis[]>;
+  clearUserHistory(userId: string): Promise<number>;
+  deleteUserAnalysis(userId: string, analysisId: string): Promise<boolean>;
   
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatMessages(analysisId: string): Promise<ChatMessage[]>;
@@ -46,6 +49,23 @@ export class MemStorage implements IStorage {
     const user: User = { ...insertUser, id };
     this.users.set(id, user);
     return user;
+  }
+
+  async updateUsername(userId: string, username: string): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+
+    const usernameTaken = Array.from(this.users.values()).some(
+      (existing) => existing.username === username && existing.id !== userId,
+    );
+
+    if (usernameTaken) {
+      throw new Error("Username already exists");
+    }
+
+    const updatedUser: User = { ...user, username };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
   }
 
   async createDocument(insertDocument: InsertDocument): Promise<Document> {
@@ -100,6 +120,41 @@ export class MemStorage implements IStorage {
     return Array.from(this.analyses.values())
       .filter((analysis) => analysis.userId === userId)
       .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async clearUserHistory(userId: string): Promise<number> {
+    const analysisIds = Array.from(this.analyses.values())
+      .filter((analysis) => analysis.userId === userId)
+      .map((analysis) => analysis.id);
+
+    for (const id of analysisIds) {
+      this.analyses.delete(id);
+    }
+
+    for (const [messageId, message] of this.chatMessages.entries()) {
+      if (message.userId === userId || analysisIds.includes(message.analysisId)) {
+        this.chatMessages.delete(messageId);
+      }
+    }
+
+    return analysisIds.length;
+  }
+
+  async deleteUserAnalysis(userId: string, analysisId: string): Promise<boolean> {
+    const analysis = this.analyses.get(analysisId);
+    if (!analysis || analysis.userId !== userId) {
+      return false;
+    }
+
+    this.analyses.delete(analysisId);
+
+    for (const [messageId, message] of this.chatMessages.entries()) {
+      if (message.analysisId === analysisId) {
+        this.chatMessages.delete(messageId);
+      }
+    }
+
+    return true;
   }
 
   async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {

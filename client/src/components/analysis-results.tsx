@@ -286,7 +286,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
       </div>
 
       {/* Document Summary */}
-      <div className="bg-card rounded-lg border border-border p-4 sm:p-6 analysis-card" data-testid="card-document-summary">
+      <div className="analysis-card" data-testid="card-document-summary">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 gap-2">
           <h3 className="text-base sm:text-lg font-semibold text-foreground" data-testid="text-summary-title">{t("analysis.summary")}</h3>
           <Badge variant="secondary" className="text-xs self-start sm:self-auto" data-testid="badge-document-type">
@@ -298,7 +298,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
             {cleanMarkdown(summaryText)}
           </p>
           {summaryKeyTerms && Object.keys(summaryKeyTerms).length > 0 && (
-            <div className="bg-accent/50 p-3 sm:p-4 rounded-md" data-testid="section-key-terms">
+            <div className="pt-2" data-testid="section-key-terms">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-medium text-sm sm:text-base text-foreground" data-testid="text-key-terms-title">{t("analysis.keyTerms")}</h4>
                 <TooltipProvider>
@@ -388,193 +388,151 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
       <RiskAssessment riskItems={analysis.riskItems} riskLevel={analysis.riskLevel} />
 
       {/* Key Clauses Analysis */}
-      <div className="bg-card rounded-lg border border-border p-4 sm:p-6 analysis-card" data-testid="card-clauses-analysis">
+      <div className="analysis-card" data-testid="card-clauses-analysis">
         <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4" data-testid="text-clauses-title">
           {t("analysis.clauses")}
         </h3>
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-4">
           {analysis.clauses && analysis.clauses.length > 0 ? (
             analysis.clauses.map((clause: any, index: number) => (
-              <div key={index} className="border border-border rounded-lg overflow-hidden" data-testid={`clause-item-${index}`}>
+              <div key={index} className="rounded-xl border-l-2 border-[#2f5960]/20 pl-4 transition-colors hover:bg-[#eef8f5]/80" data-testid={`clause-item-${index}`}>
                 <button
-                  className="w-full p-3 sm:p-4 text-left bg-muted hover:bg-muted/80 transition-colors flex justify-between items-center"
+                  className="group flex w-full cursor-pointer items-center justify-between rounded-lg py-2 pr-2 text-left transition-colors"
                   onClick={() => toggleClause(index)}
                   data-testid={`button-toggle-clause-${index}`}
                 >
-                  <span className="font-medium text-sm sm:text-base text-foreground pr-2" data-testid={`text-clause-title-${index}`}>
+                  <span className="pr-2 text-sm font-medium text-[#1d3b40] transition-colors group-hover:text-[#1f565f] sm:text-base" data-testid={`text-clause-title-${index}`}>
                     {cleanMarkdown(clause.title)}
                   </span>
                   {expandedClauses.has(index) ? (
-                    <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <ChevronDown className="h-4 w-4 flex-shrink-0 text-[#5c7d82] transition-colors group-hover:text-[#1f565f]" />
                   ) : (
-                    <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <ChevronRight className="h-4 w-4 flex-shrink-0 text-[#5c7d82] transition-colors group-hover:text-[#1f565f]" />
                   )}
                 </button>
                 {expandedClauses.has(index) && (
-                  <div className="p-3 sm:p-4 bg-card border-t border-border" data-testid={`clause-content-${index}`}>
-                    <div className="space-y-4">
-                      <div className="min-w-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <h5 className="text-xs sm:text-sm font-medium text-foreground">Original Text</h5>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className={`h-7 px-2 text-xs ${
-                                    copiedItems.has(`clause-original-${index}`) ? 'text-primary' : ''
-                                  }`}
-                                  onClick={() => copyToClipboard(clause.originalText, `clause-original-${index}`, 'Original clause text')}
-                                  data-testid={`button-copy-original-${index}`}
-                                  aria-label="Copy original clause text"
-                                >
-                                  {copiedItems.has(`clause-original-${index}`) ? (
-                                    <>
-                                      <Check className="w-3.5 h-3.5 mr-1.5" />
-                                      Copied
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Copy className="w-3.5 h-3.5 mr-1.5" />
-                                      Copy
-                                    </>
-                                  )}
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Copy original text to clipboard</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <p className="text-xs text-muted-foreground bg-muted/50 p-2 sm:p-3 rounded leading-relaxed break-words" data-testid={`text-clause-original-${index}`}>
-                          {cleanMarkdown(clause.originalText)}
-                        </p>
+                  <div className="mt-3 space-y-3" data-testid={`clause-content-${index}`}>
+                    <div>
+                      <div className="mb-2 flex items-center justify-between">
+                        <h5 className="text-xs font-medium text-foreground sm:text-sm">Original Text</h5>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`h-7 px-2 text-xs ${copiedItems.has(`clause-original-${index}`) ? 'text-primary' : ''}`}
+                          onClick={() => copyToClipboard(clause.originalText, `clause-original-${index}`, 'Original clause text')}
+                          data-testid={`button-copy-original-${index}`}
+                          aria-label="Copy original clause text"
+                        >
+                          {copiedItems.has(`clause-original-${index}`) ? (
+                            <>
+                              <Check className="mr-1.5 h-3.5 w-3.5" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="mr-1.5 h-3.5 w-3.5" />
+                              Copy
+                            </>
+                          )}
+                        </Button>
                       </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <h5 className="text-xs sm:text-sm font-medium text-foreground">Plain Language</h5>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className={`h-7 px-2 text-xs ${
-                                    copiedItems.has(`clause-simplified-${index}`) ? 'text-primary' : ''
-                                  }`}
-                                  onClick={() => copyToClipboard(clause.simplifiedText, `clause-simplified-${index}`, 'Simplified clause text')}
-                                  data-testid={`button-copy-simplified-${index}`}
-                                  aria-label="Copy simplified clause text"
-                                >
-                                  {copiedItems.has(`clause-simplified-${index}`) ? (
-                                    <>
-                                      <Check className="w-3.5 h-3.5 mr-1.5" />
-                                      Copied
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Copy className="w-3.5 h-3.5 mr-1.5" />
-                                      Copy
-                                    </>
-                                  )}
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Copy simplified text to clipboard</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <p className="text-xs sm:text-sm text-foreground leading-relaxed break-words" data-testid={`text-clause-simplified-${index}`}>
-                          {cleanMarkdown(clause.simplifiedText)}
-                        </p>
+                      <p className="text-xs leading-relaxed text-muted-foreground break-words sm:text-sm" data-testid={`text-clause-original-${index}`}>
+                        {cleanMarkdown(clause.originalText)}
+                      </p>
+                    </div>
+                    <div>
+                      <div className="mb-2 flex items-center justify-between">
+                        <h5 className="text-xs font-medium text-foreground sm:text-sm">Plain Language</h5>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`h-7 px-2 text-xs ${copiedItems.has(`clause-simplified-${index}`) ? 'text-primary' : ''}`}
+                          onClick={() => copyToClipboard(clause.simplifiedText, `clause-simplified-${index}`, 'Simplified clause text')}
+                          data-testid={`button-copy-simplified-${index}`}
+                          aria-label="Copy simplified clause text"
+                        >
+                          {copiedItems.has(`clause-simplified-${index}`) ? (
+                            <>
+                              <Check className="mr-1.5 h-3.5 w-3.5" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="mr-1.5 h-3.5 w-3.5" />
+                              Copy
+                            </>
+                          )}
+                        </Button>
                       </div>
+                      <p className="text-sm leading-relaxed text-[#1d3b40] break-words" data-testid={`text-clause-simplified-${index}`}>
+                        {cleanMarkdown(clause.simplifiedText)}
+                      </p>
                     </div>
-                    <div className="mt-3 pt-3 border-t border-border">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className={`w-full text-xs ${
-                                copiedItems.has(`clause-full-${index}`) 
-                                  ? 'border-primary text-primary bg-primary/5' 
-                                  : ''
-                              }`}
-                              onClick={() => {
-                                const fullClause = `Title: ${clause.title}\n\nOriginal Text:\n${clause.originalText}\n\nPlain Language:\n${clause.simplifiedText}`;
-                                copyToClipboard(fullClause, `clause-full-${index}`, 'Full clause');
-                              }}
-                              data-testid={`button-copy-full-clause-${index}`}
-                              aria-label="Copy full clause to clipboard"
-                            >
-                              {copiedItems.has(`clause-full-${index}`) ? (
-                                <>
-                                  <Check className="w-3.5 h-3.5 mr-2" />
-                                  Copied!
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="w-3.5 h-3.5 mr-2" />
-                                  Copy Full Clause
-                                </>
-                              )}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Copy complete clause (title, original, and simplified text)</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`w-full text-xs ${copiedItems.has(`clause-full-${index}`) ? 'border-primary text-primary bg-primary/5' : ''}`}
+                      onClick={() => {
+                        const fullClause = `Title: ${clause.title}\n\nOriginal Text:\n${clause.originalText}\n\nPlain Language:\n${clause.simplifiedText}`;
+                        copyToClipboard(fullClause, `clause-full-${index}`, 'Full clause');
+                      }}
+                      data-testid={`button-copy-full-clause-${index}`}
+                      aria-label="Copy full clause to clipboard"
+                    >
+                      {copiedItems.has(`clause-full-${index}`) ? (
+                        <>
+                          <Check className="mr-2 h-3.5 w-3.5" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="mr-2 h-3.5 w-3.5" />
+                          Copy Full Clause
+                        </>
+                      )}
+                    </Button>
                   </div>
                 )}
               </div>
             ))
           ) : (
-            <p className="text-muted-foreground text-center py-4" data-testid="text-no-clauses">
+            <p className="py-4 text-center text-sm text-muted-foreground" data-testid="text-no-clauses">
               {t("risk.noRisks")}
             </p>
           )}
         </div>
       </div>
 
-      {/* Q&A Section */}
+      <div className="my-2 border-y border-[#2d575e]/12 py-5" data-testid="section-qa-chat">
       <QAChat analysisId={analysis.id} documentContent={documentData.content} />
+      </div>
 
       {/* Action Recommendations */}
-      <div className="bg-card rounded-lg border border-border p-4 sm:p-6 analysis-card" data-testid="card-recommendations">
-        <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4" data-testid="text-recommendations-title">
+      <div className="analysis-card" data-testid="card-recommendations">
+        <h3 className="mb-3 sm:mb-4 text-base font-semibold text-foreground sm:text-lg" data-testid="text-recommendations-title">
           {t("analysis.recommendations")}
         </h3>
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-4">
           {analysis.recommendations && analysis.recommendations.length > 0 ? (
             analysis.recommendations.map((rec: any, index: number) => (
-              <div 
-                key={index} 
-                className="flex items-start space-x-3 p-3 sm:p-4 bg-accent/30 border border-accent rounded-lg"
-                data-testid={`recommendation-item-${index}`}
-              >
-                <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
-                  <span className="text-xs text-primary-foreground font-medium" data-testid={`text-rec-priority-${index}`}>
+              <div key={index} className="flex items-start space-x-3 border-l-2 border-[#2f5960]/20 pl-4" data-testid={`recommendation-item-${index}`}>
+                <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary">
+                  <span className="text-xs font-medium text-primary-foreground" data-testid={`text-rec-priority-${index}`}>
                     {rec.priority || index + 1}
                   </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm sm:text-base text-foreground mb-2" data-testid={`text-rec-title-${index}`}>
+                <div className="min-w-0 flex-1">
+                  <h4 className="mb-2 text-sm font-medium text-foreground sm:text-base" data-testid={`text-rec-title-${index}`}>
                     {cleanMarkdown(rec.title)}
                   </h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed" data-testid={`text-rec-description-${index}`}>
+                  <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm" data-testid={`text-rec-description-${index}`}>
                     {cleanMarkdown(rec.description)}
                   </p>
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4" data-testid="text-no-recommendations">
+            <p className="py-4 text-center text-sm text-muted-foreground" data-testid="text-no-recommendations">
               {t("risk.noRisks")}
             </p>
           )}

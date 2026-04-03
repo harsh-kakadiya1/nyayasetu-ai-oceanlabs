@@ -1,18 +1,99 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, Scale, X } from "lucide-react";
+import { ChevronRight, Crown, LogOut, Menu, Scale, Settings, UserCircle2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LanguageSelector from "@/components/language-selector";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import API_ENDPOINTS from "@/lib/api";
 
 export default function Navbar() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [location] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [isClearingHistory, setIsClearingHistory] = useState(false);
+  const { user, logout, updateProfile } = useAuth();
+
+  useEffect(() => {
+    setProfileName(user?.username || "");
+  }, [user?.username]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  const initials = (user?.username || "U")
+    .trim()
+    .split(/\s+/)
+    .map((part) => part[0]?.toUpperCase())
+    .join("")
+    .slice(0, 2);
+
+  const handleProfileSave = async () => {
+    const nextName = profileName.trim();
+    if (nextName.length < 3) {
+      toast({
+        title: "Invalid username",
+        description: "Username must be at least 3 characters",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const result = await updateProfile(nextName);
+    if (!result.ok) {
+      toast({
+        title: "Profile update failed",
+        description: result.error || "Please try again",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsEditingProfile(false);
+    toast({
+      title: "Profile updated",
+      description: "Your display name has been updated",
+    });
+  };
+
+  const clearHistory = async () => {
+    if (!confirm("Remove all analysis history? This cannot be undone.")) {
+      return;
+    }
+
+    try {
+      setIsClearingHistory(true);
+      const response = await fetch(API_ENDPOINTS.history, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to clear history");
+      }
+
+      window.dispatchEvent(new Event("history:cleared"));
+      toast({
+        title: "History cleared",
+        description: "All analysis history was removed",
+      });
+    } catch {
+      toast({
+        title: "Could not clear history",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsClearingHistory(false);
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-40 border-b border-[#2d545c]/15 bg-[#f9f5eb]/80 backdrop-blur-md">
@@ -54,11 +135,114 @@ export default function Navbar() {
                 <LanguageSelector />
               </div>
           {user ? (
-            <>
-              <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]" onClick={logout}>
-                Logout
-              </Button>
-            </>
+            <HoverCard openDelay={120} closeDelay={180}>
+              <HoverCardTrigger asChild>
+                <button
+                  type="button"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[#2f5960]/20 bg-white/75 transition-colors hover:border-[#2f5960]/35 hover:bg-[#eef8f5]"
+                  aria-label="Open profile menu"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-[#e24f3d] text-xs font-semibold text-white">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              </HoverCardTrigger>
+              <HoverCardContent align="end" sideOffset={12} className="w-[320px] rounded-2xl border-[#355a60]/25 bg-[#2f3135] p-3 text-[#f7f9fa]">
+                <div className="rounded-xl bg-[#ffffff08] px-3 py-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-[#e24f3d] text-sm font-semibold text-white">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-semibold tracking-wide">{user.username}</p>
+                      <p className="text-xs text-[#b6c3c6]">nyayasetu.ai</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-3 space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingProfile((prev) => !prev)}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] transition-colors hover:bg-[#ffffff12]"
+                  >
+                    <UserCircle2 className="h-4 w-4" />
+                    <span>Edit profile</span>
+                  </button>
+
+                  {isEditingProfile && (
+                    <div className="space-y-2 rounded-lg border border-[#ffffff18] bg-[#ffffff08] p-3">
+                      <Input
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value)}
+                        className="h-9 border-[#ffffff24] bg-[#232529] text-[#f5f9f9] placeholder:text-[#8ca0a4]"
+                        placeholder="Enter username"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="h-8 w-full bg-[#e8edf0] text-[#1f2a2d] hover:bg-white"
+                        onClick={handleProfileSave}
+                      >
+                        Save profile
+                      </Button>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      toast({ title: "Upgrade plan", description: "Pricing options are coming soon." })
+                    }
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] transition-colors hover:bg-[#ffffff12]"
+                  >
+                    <Crown className="h-4 w-4" />
+                    <span>Upgrade plan</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsSettingsOpen((prev) => !prev)}
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[15px] transition-colors hover:bg-[#ffffff12]"
+                  >
+                    <span className="flex items-center gap-3">
+                      <Settings className="h-4 w-4" />
+                      Settings
+                    </span>
+                    <ChevronRight className={`h-4 w-4 transition-transform ${isSettingsOpen ? "rotate-90" : ""}`} />
+                  </button>
+
+                  {isSettingsOpen && (
+                    <div className="space-y-2 rounded-lg border border-[#ffffff18] bg-[#ffffff08] p-3 text-sm">
+                      <p className="text-[#c6d0d2]">Manage analysis history</p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        className="h-8 w-full"
+                        onClick={clearHistory}
+                        disabled={isClearingHistory}
+                      >
+                        {isClearingHistory ? "Removing..." : "Remove all history"}
+                      </Button>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] text-[#ffd9d3] transition-colors hover:bg-[#ff5f4b1a]"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Log out</span>
+                  </button>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
           ) : (
             <>
               <Link href="/login">

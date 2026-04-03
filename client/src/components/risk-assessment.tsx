@@ -78,7 +78,7 @@ export default function RiskAssessment({ riskItems, riskLevel }: RiskAssessmentP
   };
 
   return (
-    <div className="bg-card rounded-lg border border-border p-6 analysis-card" data-testid="card-risk-assessment">
+    <div className="analysis-card" data-testid="card-risk-assessment">
       <h3 className="text-lg font-semibold text-foreground mb-4" data-testid="text-risk-assessment-title">
         Risk Assessment
       </h3>
@@ -91,7 +91,7 @@ export default function RiskAssessment({ riskItems, riskLevel }: RiskAssessmentP
             return (
               <div 
                 key={index} 
-                className={`flex items-start space-x-3 p-4 ${colors.bg} border ${colors.border} rounded-lg risk-indicator`}
+                className={`flex items-start space-x-3 py-3 ${colors.bg} risk-indicator`}
                 data-testid={`risk-item-${index}`}
               >
                 <div className={`w-3 h-3 ${colors.indicator} rounded-full mt-1.5 flex-shrink-0`}></div>

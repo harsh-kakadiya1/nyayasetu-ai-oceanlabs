@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
     login: `${API_BASE_URL}/api/auth-login`,
     logout: `${API_BASE_URL}/api/auth-logout`,
     me: `${API_BASE_URL}/api/auth-me`,
+    profile: `${API_BASE_URL}/api/auth-profile`,
   },
   documents: {
     upload: `${API_BASE_URL}/api/documents-upload`,
@@ -21,6 +22,7 @@ export const API_ENDPOINTS = {
     askQuestion: (analysisId: string) => `${API_BASE_URL}/api/analysis-question?analysisId=${encodeURIComponent(analysisId)}`,
   },
   history: `${API_BASE_URL}/api/history`,
+  historyItem: (analysisId: string) => `${API_BASE_URL}/api/history/${encodeURIComponent(analysisId)}`,
 };
 
 export default API_ENDPOINTS;

@@ -12,6 +12,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<boolean>;
   signup: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  updateProfile: (username: string) => Promise<{ ok: boolean; error?: string }>;
   checkAuth: () => Promise<void>;
   googleLogin: () => void;
 }
@@ -94,6 +95,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfile = async (username: string) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.auth.profile, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ username }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: "Failed to update profile" }));
+        return { ok: false, error: data.error || "Failed to update profile" };
+      }
+
+      const updated = await response.json();
+      setUser(updated);
+      return { ok: true };
+    } catch {
+      return { ok: false, error: "Network error while updating profile" };
+    }
+  };
+
   const googleLogin = () => {
     // Redirect to the Google OAuth endpoint on the backend
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -113,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         signup,
         logout,
+        updateProfile,
         checkAuth,
       }}
     >

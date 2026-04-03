@@ -150,10 +150,6 @@
     @apply transition-all duration-200 ease-in-out;
   }
   
-  .risk-indicator:hover {
-    @apply -translate-y-0.5 shadow-lg;
-  }
-  
   .document-upload-area {
     @apply border-2 border-dashed border-border transition-all duration-300;
   }
@@ -164,10 +160,6 @@
   
   .analysis-card {
     @apply transition-all duration-200 ease-in-out;
-  }
-  
-  .analysis-card:hover {
-    @apply shadow-xl;
   }
 
   .loading-spinner {

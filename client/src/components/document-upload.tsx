@@ -184,13 +184,13 @@ export default function DocumentUpload({
   };
 
   return (
-    <div className="bg-card rounded-lg border border-border p-4 sm:p-6 mb-4 sm:mb-6" data-testid="card-document-upload">
-      <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4" data-testid="text-upload-title">{t('upload.title')}</h3>
+    <div className="space-y-5 mb-4 sm:mb-6" data-testid="card-document-upload">
+      <h3 className="text-base sm:text-lg font-semibold text-foreground" data-testid="text-upload-title">{t('upload.title')}</h3>
       
       {/* File Upload Area */}
       <div 
-        className={`document-upload-area rounded-lg p-6 sm:p-8 text-center mb-3 sm:mb-4 cursor-pointer transition-colors min-h-[120px] sm:min-h-[140px] flex flex-col justify-center ${
-          isDragOver ? 'border-primary bg-accent' : ''
+        className={`document-upload-area p-6 sm:p-8 text-center cursor-pointer transition-colors min-h-[120px] sm:min-h-[140px] flex flex-col justify-center ${
+          isDragOver ? 'text-[#1f565f]' : 'text-inherit'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -239,7 +239,7 @@ export default function DocumentUpload({
       </div>
 
       {/* Text Input Alternative */}
-      <div className="border-t border-border pt-3 sm:pt-4">
+      <div className="pt-3 sm:pt-4">
         <Label htmlFor="text-input" className="block text-xs sm:text-sm font-medium text-foreground mb-2">
           {t('upload.pasteText')}
         </Label>

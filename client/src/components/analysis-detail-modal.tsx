@@ -206,7 +206,7 @@ export default function AnalysisDetailModal({ analysis, open, onOpenChange }: An
                   {analysis.riskItems.map((item: any, index: number) => (
                     <div
                       key={index}
-                      className="p-4 bg-red-50 border-2 border-red-200 rounded-lg hover:shadow-md transition-shadow"
+                      className="p-4 bg-red-50 border-2 border-red-200 rounded-lg"
                     >
                       {renderRiskItem(item)}
                     </div>
@@ -223,7 +223,7 @@ export default function AnalysisDetailModal({ analysis, open, onOpenChange }: An
                   {analysis.clauses.map((clause: any, index: number) => (
                     <div
                       key={index}
-                      className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg hover:shadow-md transition-shadow"
+                      className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg"
                     >
                       {renderClause(clause)}
                     </div>
@@ -243,7 +243,7 @@ export default function AnalysisDetailModal({ analysis, open, onOpenChange }: An
                   {analysis.recommendations.map((rec: any, index: number) => (
                     <div
                       key={index}
-                      className="p-4 bg-amber-50 border-2 border-amber-200 rounded-lg hover:shadow-md transition-shadow"
+                      className="p-4 bg-amber-50 border-2 border-amber-200 rounded-lg"
                     >
                       {renderRecommendation(rec)}
                     </div>

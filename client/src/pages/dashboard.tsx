@@ -1,7 +1,7 @@
 import DocumentUpload from "@/components/document-upload";
 import AnalysisResults from "@/components/analysis-results";
 import LoadingAnalysis from "@/components/loading-analysis";
-import { ArrowRight, FileText, Clock, Eye, History, Upload, CheckCircle2, ShieldAlert, TimerReset, ScanSearch, MessageSquare } from "lucide-react";
+import { ArrowRight, FileText, Clock, Eye, History, Upload, CheckCircle2, ShieldAlert, TimerReset, ScanSearch, MessageSquare, Trash2 } from "lucide-react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -60,6 +60,7 @@ export default function Dashboard() {
 	const [selectedHistoryItem, setSelectedHistoryItem] = useState<Analysis | null>(null);
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [modalOpen, setModalOpen] = useState(false);
+	const [deletingHistoryId, setDeletingHistoryId] = useState<string | null>(null);
 
 	useEffect(() => {
 		const previousBodyOverflow = document.body.style.overflow;
@@ -76,6 +77,17 @@ export default function Dashboard() {
 
 	useEffect(() => {
 		fetchHistory();
+	}, []);
+
+	useEffect(() => {
+		const handleHistoryCleared = () => {
+			setAnalyses([]);
+			setSelectedHistoryItem(null);
+			fetchHistory();
+		};
+
+		window.addEventListener("history:cleared", handleHistoryCleared);
+		return () => window.removeEventListener("history:cleared", handleHistoryCleared);
 	}, []);
 
 	const fetchHistory = async () => {
@@ -117,6 +129,44 @@ export default function Dashboard() {
 	const handleHistoryClick = (analysis: Analysis) => {
 		setSelectedHistoryItem(analysis);
 		setModalOpen(true);
+	};
+
+	const handleDeleteHistoryItem = async (analysisId: string) => {
+		if (!confirm("Delete this history item?")) {
+			return;
+		}
+
+		try {
+			setDeletingHistoryId(analysisId);
+			const response = await fetch(API_ENDPOINTS.historyItem(analysisId), {
+				method: "DELETE",
+				credentials: "include",
+			});
+
+			if (!response.ok) {
+				throw new Error("Failed to delete history item");
+			}
+
+			setAnalyses((prev) => prev.filter((item) => item.id !== analysisId));
+			if (selectedHistoryItem?.id === analysisId) {
+				setModalOpen(false);
+				setSelectedHistoryItem(null);
+			}
+
+			toast({
+				title: "Deleted",
+				description: "History item removed successfully",
+			});
+		} catch (error) {
+			console.error("Failed to delete history item:", error);
+			toast({
+				title: "Delete failed",
+				description: "Could not delete this history item",
+				variant: "destructive",
+			});
+		} finally {
+			setDeletingHistoryId(null);
+		}
 	};
 
 	const handleAnalysisComplete = (result: AnalysisData) => {
@@ -167,224 +217,127 @@ export default function Dashboard() {
 		analysisStartTimeRef.current = null;
 	};
 
-	useEffect(() => {
-		if (showResults && analysisResult && !hasShownToastRef.current) {
-			toast({
-				title: t("analysis.title"),
-				description: t("common.success"),
-			});
-			hasShownToastRef.current = true;
-		}
-	}, [showResults, analysisResult, toast, t]);
-
-	const stats = [
-		{
-			label: t("analysis.documentLength"),
-			value: analysisResult?.analysis?.wordCount
-				? `${analysisResult.analysis.wordCount.toLocaleString()}`
-				: "--",
-			icon: ScanSearch,
-		},
-		{
-			label: t("analysis.riskLevel"),
-			value: analysisResult?.analysis?.riskLevel
-				? t(`analysis.${analysisResult.analysis.riskLevel}`)
-				: "--",
-			icon: ShieldAlert,
-		},
-		{
-			label: t("analysis.processingTime"),
-			value: analysisResult?.analysis?.processingTime || "--",
-			icon: TimerReset,
-		},
-	];
-
 	return (
 		<div className="h-[calc(100dvh-68px)] overflow-hidden bg-gradient-to-br from-[#f8f4ea] via-[#edf4f1] to-[#f4f8f7]">
-			<div className={`flex h-full overflow-hidden transition-all duration-300 ${sidebarOpen ? '' : 'pl-0'}`}>
-				{/* Sidebar Toggle Button (when closed) */}
+			<div className="flex h-full overflow-hidden">
 				{!sidebarOpen && (
 					<button
 						onClick={() => setSidebarOpen(true)}
-						className="fixed left-4 top-20 z-50 w-10 h-10 rounded-lg bg-[#1f565f] text-white flex items-center justify-center shadow-lg hover:bg-[#173f46] transition-colors"
+						className="fixed left-4 top-20 z-50 flex h-10 w-10 items-center justify-center rounded-lg bg-[#1f565f] text-white transition-colors hover:bg-[#173f46]"
 					>
 						<History className="h-5 w-5" />
 					</button>
 				)}
 
-				{/* Left Sidebar - History - Sticky */}
-				<aside className={`${sidebarOpen ? 'w-72' : 'w-0'} flex h-full flex-shrink-0 flex-col overflow-hidden border-r border-[#2d575e]/15 bg-white/80 backdrop-blur-sm transition-all duration-300`}>
-					{/* Sidebar Header with Toggle */}
-					<div className="p-3 border-b border-[#2d575e]/10 flex items-center justify-between">
+				<aside className={`${sidebarOpen ? "w-72" : "w-0"} flex h-full flex-shrink-0 flex-col overflow-hidden border-r border-[#2d575e]/15 bg-white/70 backdrop-blur-sm transition-all duration-300`}>
+					<div className="flex items-center justify-between border-b border-[#2d575e]/10 px-4 py-3">
 						<div className="flex items-center gap-2">
 							<History className="h-4 w-4 text-[#4a7379]" />
 							<span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#4a7379]">History</span>
 						</div>
-						<button
-							onClick={() => setSidebarOpen(false)}
-							className="w-8 h-8 rounded-lg hover:bg-[#eef8f5] flex items-center justify-center text-[#6b8a90] hover:text-[#1f565f] transition-colors"
-						>
-							<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+						<button onClick={() => setSidebarOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6b8a90] transition-colors hover:bg-[#eef8f5] hover:text-[#1f565f]">
+							<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
 							</svg>
 						</button>
 					</div>
 
-					{/* New Analysis Button - Top */}
-					<div className="p-3 border-b border-[#2d575e]/10">
+					<div className="border-b border-[#2d575e]/10 px-4 py-3">
 						<Button
 							onClick={() => {
 								setShowResults(false);
 								setAnalysisResult(null);
 							}}
-							className="w-full h-10 rounded-xl bg-[#1f565f] hover:bg-[#173f46] text-white"
+							className="h-10 w-full rounded-xl bg-[#1f565f] text-white hover:bg-[#173f46]"
 						>
-							<Upload className="h-4 w-4 mr-2" />
-							New Analysis
+							<Upload className="mr-2 h-4 w-4" />
+							{t("analysis.newAnalysis")}
 						</Button>
 					</div>
 
-					{/* History List */}
-					<div className="flex-1 overflow-y-auto p-3">
+					<div className="flex-1 overflow-y-auto px-3 py-3">
 						{historyLoading ? (
 							<div className="space-y-2">
-								{[...Array(4)].map((_, i) => (
-									<div key={i} className="h-14 bg-gray-100 rounded-lg animate-pulse" />
+								{[...Array(4)].map((_, index) => (
+									<div key={index} className="h-14 animate-pulse rounded-lg bg-gray-100/80" />
 								))}
 							</div>
 						) : analyses.length === 0 ? (
-							<div className="text-center py-8 px-4">
-								<FileText className="mx-auto h-8 w-8 text-[#c4d4d6] mb-2" />
-								<p className="text-xs text-[#7a9a9e]">No analyses yet</p>
+							<div className="px-4 py-8 text-center">
+								<FileText className="mx-auto mb-2 h-8 w-8 text-[#c4d4d6]" />
+								<p className="text-xs text-[#7a9a9e]">{t("history.empty")}</p>
 							</div>
 						) : (
 							<div className="space-y-1">
 								{analyses.map((analysis) => (
-									<button
-										key={analysis.id}
-										onClick={() => handleHistoryClick(analysis)}
-										className="w-full text-left p-3 rounded-xl hover:bg-[#eef8f5] transition-colors group"
-									>
-										<div className="flex items-start gap-2">
-											<div className="mt-0.5">
-												<FileText className="h-4 w-4 text-[#7a9a9e] group-hover:text-[#1f565f]" />
+									<div key={analysis.id} className="group flex items-start gap-2 rounded-xl px-2 py-2 transition-colors hover:bg-[#eef8f5]">
+										<button
+											onClick={() => handleHistoryClick(analysis)}
+											className="flex min-w-0 flex-1 items-start gap-2 rounded-lg px-1 py-1 text-left"
+										>
+											<FileText className="mt-0.5 h-4 w-4 text-[#7a9a9e] group-hover:text-[#1f565f]" />
+											<div className="min-w-0 flex-1">
+												<p className="truncate text-sm font-medium text-[#1d3b40]">{analysis.summary.slice(0, 45)}...</p>
+												<p className="mt-1 text-[10px] text-[#7a9a9e]">{formatDate(analysis.createdAt)}</p>
 											</div>
-											<div className="flex-1 min-w-0">
-												<p className="text-sm text-[#1d3b40] font-medium truncate">
-													{analysis.summary.slice(0, 45)}...
-												</p>
-												<div className="flex items-center gap-2 mt-1">
-													<span className="text-[10px] text-[#7a9a9e]">{formatDate(analysis.createdAt)}</span>
-												</div>
-											</div>
-										</div>
-									</button>
-									))}
-								</div>
-							)}
-						</div>
-					</aside>
-
-				{/* Main Content Area */}
-				<main className="flex-1 h-full overflow-y-auto">
-					<div className="mx-auto max-w-5xl p-6 lg:p-8">
-						{/* Header */}
-						<div className="mb-6">
-							<h1 className="font-display text-2xl font-semibold text-[#1d3b40]">
-								{t("analysis.title")}
-							</h1>
-							<p className="text-sm text-[#6b8a90] mt-1">
-								Upload a document to get AI-powered legal analysis
-							</p>
-						</div>
-
-						{/* Stats Bar */}
-						{showResults && analysisResult?.analysis && (
-							<div className="mb-6 flex flex-wrap gap-3">
-								{stats.map(({ label, value, icon: Icon }) => (
-									<div
-										key={label}
-										className="flex items-center gap-3 px-4 py-2 rounded-full border border-[#2c5157]/12 bg-white/60"
-									>
-										<Icon className="h-4 w-4 text-[#1f565f]" />
-										<div className="flex items-center gap-2">
-											<span className="text-sm font-semibold text-[#1d3b40]">{value}</span>
-											<span className="text-xs text-[#6b8a90]">{label}</span>
-										</div>
+										</button>
+										<button
+											type="button"
+											onClick={() => handleDeleteHistoryItem(analysis.id)}
+											disabled={deletingHistoryId === analysis.id}
+											className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-[#7f989d] opacity-0 transition-colors hover:bg-[#f7dede] hover:text-[#c0392b] group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-60"
+											aria-label="Delete history item"
+										>
+											<Trash2 className="h-3.5 w-3.5" />
+										</button>
 									</div>
 								))}
 							</div>
 						)}
+					</div>
+				</aside>
 
-						{/* Horizontal Upload Section */}
+				<main className="h-full flex-1 overflow-y-auto">
+					<div className="mx-auto max-w-5xl px-6 py-6 lg:px-8 lg:py-8">
+						<div className="mb-6 flex items-end justify-between gap-4">
+							{(!showResults || isAnalyzing) && (
+								<div>
+									<h1 className="font-display text-2xl font-semibold text-[#1d3b40]">{t("analysis.title")}</h1>
+									<p className="mt-1 text-sm text-[#6b8a90]">{t("analysis.subtitle")}</p>
+								</div>
+							)}
+						</div>
+
 						{(!showResults || isAnalyzing) && (
-							<section className="mb-6 rounded-2xl border border-[#2d575e]/15 bg-white/75 p-6 backdrop-blur-sm">
-								<div className="flex items-start gap-4 mb-4">
-									<div className="flex-shrink-0 rounded-lg bg-[#f6b26b]/20 p-2">
-										<Upload className="h-5 w-5 text-[#f6b26b]" />
-									</div>
-									<div>
-										<h2 className="font-display text-lg font-semibold text-[#1d3b40]">{t("upload.title")}</h2>
-										<p className="text-sm text-[#6b8a90]">{t("welcome.description")}</p>
-									</div>
-								</div>
-
-								{/* Horizontal Upload Component */}
-								<div className="border-t border-[#2d575e]/10 pt-4">
-									<DocumentUpload
-										onAnalysisStart={handleAnalysisStart}
-										onAnalysisComplete={handleAnalysisComplete}
-										onAnalysisError={handleAnalysisError}
-										isAnalyzing={isAnalyzing}
-									/>
-								</div>
+							<section className="mb-6">
+								<DocumentUpload onAnalysisStart={handleAnalysisStart} onAnalysisComplete={handleAnalysisComplete} onAnalysisError={handleAnalysisError} isAnalyzing={isAnalyzing} />
 							</section>
 						)}
 
-						{/* Analysis Results Section */}
 						{isAnalyzing ? (
-							<section className="rounded-2xl border border-[#284d54]/16 bg-white/90 p-6 shadow-lg">
+							<section>
 								<LoadingAnalysis />
 							</section>
-							) : showResults && analysisResult && analysisResult.analysis ? (
-							<section className="rounded-2xl border border-[#284d54]/16 bg-white/90 p-6 shadow-lg">
-								<div className="flex items-center justify-between mb-4">
-									<div className="flex items-center gap-2">
-										<CheckCircle2 className="h-5 w-5 text-emerald-600" />
-										<h2 className="font-display text-xl font-semibold text-[#1d3b40]">Analysis Results</h2>
-									</div>
-									{analysisResult.document?.filename && (
-										<span className="text-sm text-[#6b8a90] bg-[#eef8f5] px-3 py-1 rounded-full">
-											{analysisResult.document.filename}
-										</span>
-									)}
+						) : showResults && analysisResult?.analysis ? (
+							<section className="space-y-3">
+								<div className="flex items-center gap-2">
+									<CheckCircle2 className="h-5 w-5 text-emerald-600" />
+									<h2 className="font-display text-xl font-semibold text-[#1d3b40]">{t("analysis.results")}</h2>
 								</div>
+								{analysisResult.document?.filename && <p className="text-sm text-[#6b8a90]">{analysisResult.document.filename}</p>}
 								<AnalysisResults analysisData={analysisResult} />
 							</section>
 						) : (
-							/* Empty State */
-							<section className="rounded-2xl border border-dashed border-[#2e5960]/20 bg-gradient-to-br from-white/50 to-[#f9fffe] p-12 text-center">
-								<div className="mx-auto mb-5 inline-flex rounded-2xl bg-gradient-to-br from-[#e7f6f1] to-[#f0f8f5] p-5">
-									<FileText className="h-12 w-12 text-[#1f565f]" />
-								</div>
-								<h3 className="font-display text-xl font-semibold text-[#1f3d42]">
-									{t("welcome.title")}
-								</h3>
-								<p className="mx-auto mt-3 max-w-md text-sm text-[#557980]">
-									{t("welcome.description")}
-								</p>
+							<section className="py-8">
+								<h3 className="font-display text-xl font-semibold text-[#1f3d42]">{t("welcome.title")}</h3>
+								<p className="mt-3 max-w-md text-sm text-[#557980]">{t("welcome.description")}</p>
 							</section>
 						)}
 					</div>
 				</main>
 			</div>
 
-			{/* History Detail Modal */}
-			<AnalysisDetailModal
-				analysis={selectedHistoryItem}
-				open={modalOpen}
-				onOpenChange={setModalOpen}
-			/>
+			<AnalysisDetailModal analysis={selectedHistoryItem} open={modalOpen} onOpenChange={setModalOpen} />
 		</div>
 	);
 }
