@@ -1,0 +1,72 @@
+{
+  "app": {
+    "badge": "Module 1 Foundation",
+    "title": "NyayaSetu AI",
+    "subtitle": "Frontend-ready legal intelligence",
+    "apiMode": "Data mode"
+  },
+  "actions": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "analyze": "Mock Analysis Chalu Karo",
+    "send": "Moklo",
+    "retry": "Fari Prayatna"
+  },
+  "states": {
+    "loading": "Loading",
+    "empty": "Haju data nathi",
+    "error": "Kain khotu thayu"
+  },
+  "languages": {
+    "en": "English",
+    "hi": "Hindi",
+    "gu": "Gujarati",
+    "mr": "Marathi",
+    "ta": "Tamil",
+    "bn": "Bengali"
+  },
+  "landing": {
+    "headline": "Pehla UI banao, backend pachhi jodo.",
+    "description": "Aa frontend strict API contracts ane mock adapter sathe taiyar chhe, etle hackathon ma speed ane stability male chhe.",
+    "pointOne": "Brand tokens, spacing ane breakpoints ekaj jagyae define chhe.",
+    "pointTwo": "Mock data backend contract jevu j structure follow kare chhe.",
+    "pointThree": "Language switch i18next sathe save thay chhe.",
+    "pointFour": "Left controls ane right table judge demo mate optimized chhe."
+  },
+  "auth": {
+    "title": "Judge Demo Access",
+    "subtitle": "Module 1 flow sharu karva mate koi pan username/password vapro.",
+    "username": "Username",
+    "password": "Password",
+    "required": "Username ane password banne jaruri chhe."
+  },
+  "dashboard": {
+    "overview": "Workbench",
+    "settings": "Settings",
+    "controlsTitle": "Document Controls",
+    "documentName": "Document name",
+    "documentNamePlaceholder": "Example: Employment Offer Letter",
+    "documentType": "Document type",
+    "summaryLength": "Summary length",
+    "historyTitle": "Analysis History",
+    "historyEmpty": "History bharva pehla ek analysis chalu karo.",
+    "latestTitle": "Latest Analysis",
+    "latestEmpty": "Haju koi analysis select nathi.",
+    "chatTitle": "Q and A",
+    "chatPlaceholder": "Aa analysis vishe prashna pucho",
+    "chatEmpty": "Haju koi chat message nathi.",
+    "uploadHint": "Aa step contract based mock data vapre chhe jethi UI stable rahe."
+  },
+  "settings": {
+    "title": "Profile and Foundation",
+    "profile": "Profile",
+    "breakpoints": "Responsive breakpoints",
+    "spacing": "Spacing scale",
+    "languageSaved": "Preferred language adapter state ma update thayu."
+  },
+  "risk": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  }
+}
