@@ -96,6 +96,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     return res.status(401).json({ error: "Not authenticated" });
   });
+
+  // Google OAuth Routes
+  app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+
+  app.get("/api/auth/google/callback", (req, res, next) => {
+    passport.authenticate("google", (err: any, user: any, info: any) => {
+      if (err) {
+        console.error("[AUTH] Google auth error:", err);
+        return res.redirect(`/?error=auth_failed`);
+      }
+
+      if (!user) {
+        console.warn("[AUTH] Google auth failed:", info?.message);
+        return res.redirect(`/?error=auth_failed`);
+      }
+
+      req.login(user, (loginErr: any) => {
+        if (loginErr) {
+          console.error("[AUTH] Google login session error:", loginErr);
+          return res.redirect(`/?error=session_failed`);
+        }
+
+        // Redirect to frontend with success
+        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+        res.redirect(`${frontendUrl}/dashboard?auth=success`);
+      });
+    })(req, res, next);
+  });
   
   // Health check endpoint
   app.get("/", (req, res) => {
@@ -106,6 +134,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       endpoints: [
         "POST /api/auth/register",
         "POST /api/auth/login",
+        "GET /api/auth/google",
+        "GET /api/auth/google/callback",
         "POST /api/auth/logout",
         "GET /api/auth/me",
         "POST /api/documents/upload",

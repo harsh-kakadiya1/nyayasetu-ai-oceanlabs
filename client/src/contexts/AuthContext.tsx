@@ -13,6 +13,7 @@ interface AuthContextType {
   signup: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  googleLogin: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -93,6 +94,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const googleLogin = () => {
+    // Redirect to the Google OAuth endpoint on the backend
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    window.location.href = `${apiUrl}/api/auth/google`;
+  };
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -100,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
+        googleLogin,
         user,
         isLoading,
         login,
