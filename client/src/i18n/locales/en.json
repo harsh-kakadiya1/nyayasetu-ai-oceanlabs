@@ -22,9 +22,35 @@
   "navigation": {
     "home": "Home",
     "dashboard": "Dashboard",
+    "pricing": "Pricing",
+    "faqs": "FAQs",
     "history": "History",
     "settings": "Settings",
     "getStarted": "Get Started"
+  },
+  "navbar": {
+    "invalidUsername": "Invalid username",
+    "usernameMinLength": "Username must be at least 3 characters",
+    "profileUpdateFailed": "Profile update failed",
+    "tryAgain": "Please try again",
+    "profileUpdated": "Profile updated",
+    "displayNameUpdated": "Your display name has been updated",
+    "clearHistoryConfirm": "Remove all analysis history? This cannot be undone.",
+    "historyCleared": "History cleared",
+    "allHistoryRemoved": "All analysis history was removed",
+    "couldNotClearHistory": "Could not clear history",
+    "editProfile": "Edit profile",
+    "enterUsername": "Enter username",
+    "saveProfile": "Save profile",
+    "upgradePlan": "Upgrade plan",
+    "pricingComingSoon": "Pricing options are coming soon.",
+    "freeTokens": "Free tokens",
+    "manageHistory": "Manage analysis history",
+    "removeAllHistory": "Remove all history",
+    "removing": "Removing...",
+    "logout": "Log out",
+    "login": "Login",
+    "signup": "Sign up"
   },
   "brand": {
     "name": "nyayasetu.ai",
@@ -311,6 +337,82 @@
         "title": "Advice-ready outputs",
         "text": "Share concise reports with your advocate and speed up legal consultations."
       }
+    },
+    "pricing": {
+      "label": "Pricing",
+      "title": "Simple, Transparent Pricing",
+      "subtitle": "Choose the plan that fits your needs",
+      "plans": {
+        "starter": {
+          "name": "Starter",
+          "description": "For individuals exploring legal document analysis",
+          "price": "Free",
+          "period": "Forever free",
+          "features": [
+            "Up to 5 documents per month",
+            "Basic analysis & risk detection",
+            "Standard response time",
+            "No credit card required"
+          ],
+          "cta": "Start Free Trial"
+        },
+        "professional": {
+          "name": "Professional",
+          "description": "For professionals and small teams",
+          "price": "$29",
+          "period": "per month",
+          "features": [
+            "Unlimited documents",
+            "Advanced AI analysis",
+            "Priority support",
+            "Analysis history (6 months)",
+            "Custom risk thresholds",
+            "Batch processing"
+          ],
+          "cta": "Get Started"
+        },
+        "enterprise": {
+          "name": "Enterprise",
+          "description": "For organizations with advanced needs",
+          "price": "Custom",
+          "period": "contact us",
+          "features": [
+            "Everything in Professional",
+            "Dedicated account manager",
+            "API access",
+            "Advanced security & compliance",
+            "Custom integrations",
+            "SLA guarantees"
+          ],
+          "cta": "Contact Sales"
+        }
+      }
+    },
+    "faqs": {
+      "label": "FAQs",
+      "title": "Frequently asked questions",
+      "items": [
+        {
+          "question": "What documents can I upload?",
+          "answer": "You can upload PDF, DOCX, or TXT files. The system is optimized for legal contracts, agreements, and other structured legal documents."
+        },
+        {
+          "question": "Is my data private and secure?",
+          "answer": "Yes. We use privacy-first processing and your documents are handled securely. Data is not stored permanently and processing happens in a secure environment."
+        },
+        {
+          "question": "Can Nyayasetu AI replace my lawyer?",
+          "answer": "No. Nyayasetu AI provides informational analysis to help you understand contracts better, but it does not replace professional legal advice. Always consult a qualified advocate for important legal decisions."
+        },
+        {
+          "question": "How long does the analysis take?",
+          "answer": "Most documents are analyzed within seconds. Complex contracts may take up to a minute. The average response time is around 35 seconds."
+        },
+        {
+          "question": "Do I need to create an account?",
+          "answer": "No account is needed for your first scan. You can try the analysis immediately. For continued use and to save your history, you may want to sign up."
+        }
+      ]
     },
     "cta": {
       "title": "Read legal language like a professional.",

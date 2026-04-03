@@ -39,8 +39,8 @@ export default function Navbar() {
     const nextName = profileName.trim();
     if (nextName.length < 3) {
       toast({
-        title: "Invalid username",
-        description: "Username must be at least 3 characters",
+        title: t("navbar.invalidUsername"),
+        description: t("navbar.usernameMinLength"),
         variant: "destructive",
       });
       return;
@@ -49,8 +49,8 @@ export default function Navbar() {
     const result = await updateProfile(nextName);
     if (!result.ok) {
       toast({
-        title: "Profile update failed",
-        description: result.error || "Please try again",
+        title: t("navbar.profileUpdateFailed"),
+        description: result.error || t("navbar.tryAgain"),
         variant: "destructive",
       });
       return;
@@ -58,13 +58,13 @@ export default function Navbar() {
 
     setIsEditingProfile(false);
     toast({
-      title: "Profile updated",
-      description: "Your display name has been updated",
+      title: t("navbar.profileUpdated"),
+      description: t("navbar.displayNameUpdated"),
     });
   };
 
   const clearHistory = async () => {
-    if (!confirm("Remove all analysis history? This cannot be undone.")) {
+    if (!confirm(t("navbar.clearHistoryConfirm"))) {
       return;
     }
 
@@ -81,13 +81,13 @@ export default function Navbar() {
 
       window.dispatchEvent(new Event("history:cleared"));
       toast({
-        title: "History cleared",
-        description: "All analysis history was removed",
+        title: t("navbar.historyCleared"),
+        description: t("navbar.allHistoryRemoved"),
       });
     } catch {
       toast({
-        title: "Could not clear history",
-        description: "Please try again",
+        title: t("navbar.couldNotClearHistory"),
+        description: t("navbar.tryAgain"),
         variant: "destructive",
       });
     } finally {
@@ -122,15 +122,26 @@ export default function Navbar() {
                   </span>
                 </div>
               </Link>
-              <Link href="/dashboard">
-          <div className="flex h-10 items-center px-2">
-            <span className={`whitespace-nowrap text-sm font-medium transition-colors lg:text-base ${
-            location === "/dashboard" ? "text-[#1f4f57]" : "text-[#5f8187] hover:text-[#1f4f57]"
-            }`}>
-                    {t("navigation.dashboard")}
-                  </span>
-                </div>
-              </Link>
+              {user ? (
+                <Link href="/dashboard">
+            <div className="flex h-10 items-center px-2">
+              <span className={`whitespace-nowrap text-sm font-medium transition-colors lg:text-base ${
+              location === "/dashboard" ? "text-[#1f4f57]" : "text-[#5f8187] hover:text-[#1f4f57]"
+              }`}>
+                      {t("navigation.dashboard")}
+                    </span>
+                  </div>
+                </Link>
+              ) : (
+                <>
+                  <a href="/#pricing" className="flex h-10 items-center px-2 text-sm font-medium text-[#5f8187] transition-colors hover:text-[#1f4f57] lg:text-base">
+                    {t("navigation.pricing")}
+                  </a>
+                  <a href="/#faqs" className="flex h-10 items-center px-2 text-sm font-medium text-[#5f8187] transition-colors hover:text-[#1f4f57] lg:text-base">
+                    {t("navigation.faqs")}
+                  </a>
+                </>
+              )}
           <div className="flex h-10 items-center">
                 <LanguageSelector />
               </div>
@@ -171,7 +182,7 @@ export default function Navbar() {
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] transition-colors hover:bg-[#ffffff12]"
                   >
                     <UserCircle2 className="h-4 w-4" />
-                    <span>Edit profile</span>
+                    <span>{t("navbar.editProfile")}</span>
                   </button>
 
                   {isEditingProfile && (
@@ -180,7 +191,7 @@ export default function Navbar() {
                         value={profileName}
                         onChange={(e) => setProfileName(e.target.value)}
                         className="h-9 border-[#ffffff24] bg-[#232529] text-[#f5f9f9] placeholder:text-[#8ca0a4]"
-                        placeholder="Enter username"
+                        placeholder={t("navbar.enterUsername")}
                       />
                       <Button
                         type="button"
@@ -188,7 +199,7 @@ export default function Navbar() {
                         className="h-8 w-full bg-[#e8edf0] text-[#1f2a2d] hover:bg-white"
                         onClick={handleProfileSave}
                       >
-                        Save profile
+                        {t("navbar.saveProfile")}
                       </Button>
                     </div>
                   )}
@@ -196,12 +207,12 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() =>
-                      toast({ title: "Upgrade plan", description: "Pricing options are coming soon." })
+                      toast({ title: t("navbar.upgradePlan"), description: t("navbar.pricingComingSoon") })
                     }
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] transition-colors hover:bg-[#ffffff12]"
                   >
                     <Crown className="h-4 w-4" />
-                    <span>Upgrade plan</span>
+                    <span>{t("navbar.upgradePlan")}</span>
                   </button>
 
                   <button
@@ -211,7 +222,7 @@ export default function Navbar() {
                   >
                     <span className="flex items-center gap-3">
                       <Settings className="h-4 w-4" />
-                      Settings
+                      {t("navigation.settings")}
                     </span>
                     <ChevronRight className={`h-4 w-4 transition-transform ${isSettingsOpen ? "rotate-90" : ""}`} />
                   </button>
@@ -219,10 +230,10 @@ export default function Navbar() {
                   {isSettingsOpen && (
                     <div className="space-y-2 rounded-lg border border-[#ffffff18] bg-[#ffffff08] p-3 text-sm">
                       <div className="rounded-md border border-[#ffffff22] bg-[#1f565f33] px-3 py-2">
-                        <p className="text-xs uppercase tracking-[0.08em] text-[#b8d5da]">Free tokens</p>
+                        <p className="text-xs uppercase tracking-[0.08em] text-[#b8d5da]">{t("navbar.freeTokens")}</p>
                         <p className="mt-1 text-base font-semibold text-white">{user.tokens}</p>
                       </div>
-                      <p className="text-[#c6d0d2]">Manage analysis history</p>
+                      <p className="text-[#c6d0d2]">{t("navbar.manageHistory")}</p>
                       <Button
                         type="button"
                         size="sm"
@@ -231,7 +242,7 @@ export default function Navbar() {
                         onClick={clearHistory}
                         disabled={isClearingHistory}
                       >
-                        {isClearingHistory ? "Removing..." : "Remove all history"}
+                        {isClearingHistory ? t("navbar.removing") : t("navbar.removeAllHistory")}
                       </Button>
                     </div>
                   )}
@@ -242,7 +253,7 @@ export default function Navbar() {
                     className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] text-[#ffd9d3] transition-colors hover:bg-[#ff5f4b1a]"
                   >
                     <LogOut className="h-4 w-4" />
-                    <span>Log out</span>
+                    <span>{t("navbar.logout")}</span>
                   </button>
                 </div>
               </HoverCardContent>
@@ -251,12 +262,12 @@ export default function Navbar() {
             <>
               <Link href="/login">
                 <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]">
-                  Login
+                  {t("navbar.login")}
                 </Button>
               </Link>
               <Link href="/signup">
                 <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]">
-                  Sign up
+                  {t("navbar.signup")}
                 </Button>
               </Link>
             </>
@@ -289,19 +300,33 @@ export default function Navbar() {
                   {t("navigation.home", { defaultValue: "Home" })}
                 </div>
               </Link>
-              <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>
-          <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
-                  {t("navigation.dashboard")}
-                </div>
-              </Link>
+              {user ? (
+                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>
+            <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
+                    {t("navigation.dashboard")}
+                  </div>
+                </Link>
+              ) : (
+                <>
+                  <a
+                    href="/#pricing"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
+                  >
+                    {t("navigation.pricing")}
+                  </a>
+                  <a
+                    href="/#faqs"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
+                  >
+                    {t("navigation.faqs")}
+                  </a>
+                </>
+              )}
             <div className="border-t border-[#2f5960]/20 pt-3">
               {user ? (
                 <>
-                  <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>
-                    <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
-                      Dashboard
-                    </div>
-                  </Link>
                   <button
                     onClick={async () => {
                       await logout();
@@ -309,19 +334,19 @@ export default function Navbar() {
                     }}
                     className="block w-full rounded-lg px-4 py-2 text-left text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
                   >
-                    Logout
+                    {t("navbar.logout")}
                   </button>
                 </>
               ) : (
                 <>
                   <Link href="/login" onClick={() => setIsMenuOpen(false)}>
                     <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
-                      Login
+                      {t("navbar.login")}
                     </div>
                   </Link>
                   <Link href="/signup" onClick={() => setIsMenuOpen(false)}>
                     <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
-                      Sign up
+                      {t("navbar.signup")}
                     </div>
                   </Link>
                 </>

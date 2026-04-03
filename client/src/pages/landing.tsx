@@ -75,49 +75,49 @@ export default function Landing() {
 
   const pricingPlans = [
     {
-      name: "Starter",
-      description: "For individuals exploring legal document analysis",
-      price: "Free",
-      period: "Forever free",
+      name: t("landing.pricing.plans.starter.name"),
+      description: t("landing.pricing.plans.starter.description"),
+      price: t("landing.pricing.plans.starter.price"),
+      period: t("landing.pricing.plans.starter.period"),
       features: [
-        "Up to 5 documents per month",
-        "Basic analysis & risk detection",
-        "Standard response time",
-        "No credit card required",
+        t("landing.pricing.plans.starter.features.0"),
+        t("landing.pricing.plans.starter.features.1"),
+        t("landing.pricing.plans.starter.features.2"),
+        t("landing.pricing.plans.starter.features.3"),
       ],
-      cta: "Start Free Trial",
+      cta: t("landing.pricing.plans.starter.cta"),
       highlighted: false,
     },
     {
-      name: "Professional",
-      description: "For professionals and small teams",
-      price: "$29",
-      period: "per month",
+      name: t("landing.pricing.plans.professional.name"),
+      description: t("landing.pricing.plans.professional.description"),
+      price: t("landing.pricing.plans.professional.price"),
+      period: t("landing.pricing.plans.professional.period"),
       features: [
-        "Unlimited documents",
-        "Advanced AI analysis",
-        "Priority support",
-        "Analysis history (6 months)",
-        "Custom risk thresholds",
-        "Batch processing",
+        t("landing.pricing.plans.professional.features.0"),
+        t("landing.pricing.plans.professional.features.1"),
+        t("landing.pricing.plans.professional.features.2"),
+        t("landing.pricing.plans.professional.features.3"),
+        t("landing.pricing.plans.professional.features.4"),
+        t("landing.pricing.plans.professional.features.5"),
       ],
-      cta: "Get Started",
+      cta: t("landing.pricing.plans.professional.cta"),
       highlighted: true,
     },
     {
-      name: "Enterprise",
-      description: "For organizations with advanced needs",
-      price: "Custom",
-      period: "contact us",
+      name: t("landing.pricing.plans.enterprise.name"),
+      description: t("landing.pricing.plans.enterprise.description"),
+      price: t("landing.pricing.plans.enterprise.price"),
+      period: t("landing.pricing.plans.enterprise.period"),
       features: [
-        "Everything in Professional",
-        "Dedicated account manager",
-        "API access",
-        "Advanced security & compliance",
-        "Custom integrations",
-        "SLA guarantees",
+        t("landing.pricing.plans.enterprise.features.0"),
+        t("landing.pricing.plans.enterprise.features.1"),
+        t("landing.pricing.plans.enterprise.features.2"),
+        t("landing.pricing.plans.enterprise.features.3"),
+        t("landing.pricing.plans.enterprise.features.4"),
+        t("landing.pricing.plans.enterprise.features.5"),
       ],
-      cta: "Contact Sales",
+      cta: t("landing.pricing.plans.enterprise.cta"),
       highlighted: false,
     },
   ];
@@ -125,24 +125,24 @@ export default function Landing() {
 
   const faqs = [
     {
-      question: "What documents can I upload?",
-      answer: "You can upload PDF, DOCX, or TXT files. The system is optimized for legal contracts, agreements, and other structured legal documents."
+      question: t("landing.faqs.items.0.question"),
+      answer: t("landing.faqs.items.0.answer")
     },
     {
-      question: "Is my data private and secure?",
-      answer: "Yes. We use privacy-first processing and your documents are handled securely. Data is not stored permanently and processing happens in a secure environment."
+      question: t("landing.faqs.items.1.question"),
+      answer: t("landing.faqs.items.1.answer")
     },
     {
-      question: "Can Nyayasetu AI replace my lawyer?",
-      answer: "No. Nyayasetu AI provides informational analysis to help you understand contracts better, but it does not replace professional legal advice. Always consult a qualified advocate for important legal decisions."
+      question: t("landing.faqs.items.2.question"),
+      answer: t("landing.faqs.items.2.answer")
     },
     {
-      question: "How long does the analysis take?",
-      answer: "Most documents are analyzed within seconds. Complex contracts may take up to a minute. The average response time is around 35 seconds."
+      question: t("landing.faqs.items.3.question"),
+      answer: t("landing.faqs.items.3.answer")
     },
     {
-      question: "Do I need to create an account?",
-      answer: "No account is needed for your first scan. You can try the analysis immediately. For continued use and to save your history, you may want to sign up."
+      question: t("landing.faqs.items.4.question"),
+      answer: t("landing.faqs.items.4.answer")
     }
   ];
 
@@ -228,9 +228,9 @@ export default function Landing() {
 
         <section id="pricing" className="mx-auto mb-16 max-w-6xl">
           <div className="mb-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">Pricing</p>
-            <h2 className="font-display mt-2 text-3xl font-semibold text-[#1f383c] sm:text-4xl">Simple, Transparent Pricing</h2>
-            <p className="mt-3 text-base text-[#567a80]">Choose the plan that fits your needs</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">{t("landing.pricing.label")}</p>
+            <h2 className="font-display mt-2 text-3xl font-semibold text-[#1f383c] sm:text-4xl">{t("landing.pricing.title")}</h2>
+            <p className="mt-3 text-base text-[#567a80]">{t("landing.pricing.subtitle")}</p>
           </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3 items-stretch">
             {pricingPlans.map((plan, index) => (
@@ -275,10 +275,10 @@ export default function Landing() {
         </section>
 
 
-        <section className="mx-auto mb-16 max-w-6xl">
+        <section id="faqs" className="mx-auto mb-16 max-w-6xl">
           <div className="mb-7 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">FAQs</p>
-            <h2 className="font-display mt-2 text-2xl font-semibold text-[#1f383c] sm:text-3xl">Frequently asked questions</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">{t("landing.faqs.label")}</p>
+            <h2 className="font-display mt-2 text-2xl font-semibold text-[#1f383c] sm:text-3xl">{t("landing.faqs.title")}</h2>
           </div>
           <div className="rounded-3xl border border-[#1b3f45]/15 bg-white/75 p-6 backdrop-blur-sm sm:p-8">
             <Accordion type="single" collapsible className="w-full">
