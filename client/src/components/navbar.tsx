@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, ScanSearch, Scale, X } from "lucide-react";
+import { Menu, Scale, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LanguageSelector from "@/components/language-selector";
 import { useAuth } from "@/contexts/AuthContext";
@@ -73,10 +73,6 @@ export default function Navbar() {
               </Link>
             </>
           )}
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#2f5960]/20 bg-[#e9f7f2] px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#2d5960]">
-          <ScanSearch className="h-3.5 w-3.5" />
-          {t("analysis.title")}
-          </div>
             </div>
           </div>
 
