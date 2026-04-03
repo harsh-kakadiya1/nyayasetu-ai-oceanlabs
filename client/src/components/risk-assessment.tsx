@@ -13,6 +13,11 @@ interface RiskAssessmentProps {
 }
 
 export default function RiskAssessment({ riskItems, riskLevel }: RiskAssessmentProps) {
+  // Clean markdown formatting (remove ** markers)
+  const cleanMarkdown = (text: string): string => {
+    if (!text) return '';
+    return text.replace(/\*\*/g, '');
+  };
   const getRiskIcon = (level: string) => {
     switch (level) {
       case "high":
@@ -92,10 +97,10 @@ export default function RiskAssessment({ riskItems, riskLevel }: RiskAssessmentP
                 <div className={`w-3 h-3 ${colors.indicator} rounded-full mt-1.5 flex-shrink-0`}></div>
                 <div className="flex-1">
                   <h4 className={`font-medium ${colors.text} mb-2`} data-testid={`text-risk-title-${index}`}>
-                    {riskLabel}: {item.title}
+                    {riskLabel}: {cleanMarkdown(item.title)}
                   </h4>
                   <p className="text-sm text-muted-foreground mb-2" data-testid={`text-risk-description-${index}`}>
-                    {item.description}
+                    {cleanMarkdown(item.description)}
                   </p>
                   {item.section && (
                     <p className="text-xs text-muted-foreground" data-testid={`text-risk-section-${index}`}>

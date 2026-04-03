@@ -55,11 +55,6 @@ export default function Navbar() {
               </div>
           {user ? (
             <>
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]">
-                  Dashboard
-                </Button>
-              </Link>
               <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]" onClick={logout}>
                 Logout
               </Button>

@@ -1,5 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { SaveToggle } from "@/components/ui/save-toggle";
+import { jsPDF } from "jspdf";
 import RiskAssessment from "./risk-assessment";
 import QAChat from "./qa-chat";
 import { ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
@@ -41,11 +43,184 @@ interface AnalysisResultsProps {
 
 export default function AnalysisResults({ analysisData }: AnalysisResultsProps) {
   const { t } = useTranslation();
-  const { document, analysis } = analysisData;
+  const { document: documentData, analysis } = analysisData;
   const [expandedClauses, setExpandedClauses] = useState<Set<number>>(new Set());
   const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set());
+  const [downloadStatus, setDownloadStatus] = useState<'idle' | 'loading' | 'success' | 'saved'>('idle');
   const { toast } = useToast();
   const isMobile = useIsMobile();
+
+  // Clean markdown formatting (remove ** markers)
+  const cleanMarkdown = (text: string): string => {
+    if (!text) return '';
+    return text.replace(/\*\*/g, '');
+  };
+
+  // Handle status changes from SaveToggle
+  const handleDownloadStatusChange = async (status: 'idle' | 'loading' | 'success' | 'saved') => {
+    setDownloadStatus(status);
+    
+    if (status === 'loading') {
+      try {
+        // Generate PDF
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4',
+        });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 15;
+        const maxWidth = pageWidth - 2 * margin;
+        let yPosition = margin;
+
+        // Helper function to add text with word wrapping
+        const addWrappedText = (text: string, x: number, y: number, maxW: number, fontSize: number, fontStyle: string = 'normal') => {
+          pdf.setFontSize(fontSize);
+          pdf.setFont(undefined, fontStyle);
+          const lines = pdf.splitTextToSize(text, maxW);
+          pdf.text(lines, x, y);
+          return y + (lines.length * fontSize * 0.35);
+        };
+
+        const summaryText = typeof analysis.summary === 'object' ? analysis.summary.summary : analysis.summary;
+        const documentFileName = documentData.filename || 'Document';
+
+        // Title
+        pdf.setFontSize(20);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('Legal Document Analysis Report', margin, yPosition);
+        yPosition += 15;
+
+        // Metadata
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(`Document: ${documentFileName}`, margin, yPosition);
+        yPosition += 7;
+        pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+        yPosition += 7;
+        pdf.text(`Processing Time: ${analysis.processingTime}`, margin, yPosition);
+        yPosition += 7;
+        pdf.text(`Word Count: ${analysis.wordCount}`, margin, yPosition);
+        yPosition += 12;
+
+        // Risk Level Badge
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'bold');
+        const riskColor = analysis.riskLevel === 'high' ? [220, 38, 38] : analysis.riskLevel === 'medium' ? [245, 158, 11] : [34, 197, 94];
+        pdf.setTextColor(riskColor[0], riskColor[1], riskColor[2]);
+        pdf.text(`Risk Level: ${analysis.riskLevel.toUpperCase()}`, margin, yPosition);
+        pdf.setTextColor(0, 0, 0);
+        yPosition += 12;
+
+        // Summary Section
+        pdf.setFontSize(12);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('Summary', margin, yPosition);
+        yPosition += 8;
+
+        yPosition = addWrappedText(cleanMarkdown(summaryText), margin, yPosition, maxWidth, 10);
+        yPosition += 12;
+
+        // Key Terms
+        const summaryKeyTerms = (typeof analysis.summary === 'object' && analysis.summary.keyTerms)
+          ? analysis.summary.keyTerms
+          : analysis.keyTerms;
+
+        if (summaryKeyTerms && Object.keys(summaryKeyTerms).length > 0) {
+          pdf.setFontSize(12);
+          pdf.setFont(undefined, 'bold');
+          pdf.text('Key Terms', margin, yPosition);
+          yPosition += 8;
+
+          pdf.setFontSize(9);
+          pdf.setFont(undefined, 'normal');
+          Object.entries(summaryKeyTerms).forEach(([key, value]) => {
+            if (value) {
+              const termText = `${key.charAt(0).toUpperCase() + key.slice(1)}: ${String(value)}`;
+              yPosition = addWrappedText(termText, margin + 5, yPosition, maxWidth - 5, 9);
+            }
+          });
+          yPosition += 10;
+        }
+
+        // Risk Items
+        if (analysis.riskItems && analysis.riskItems.length > 0) {
+          pdf.setFontSize(12);
+          pdf.setFont(undefined, 'bold');
+          pdf.text('Risk Assessment', margin, yPosition);
+          yPosition += 8;
+
+          pdf.setFontSize(9);
+          analysis.riskItems.forEach((item: any) => {
+            // Check if we need a new page
+            if (yPosition > pageHeight - margin - 10) {
+              pdf.addPage();
+              yPosition = margin;
+            }
+
+            pdf.setFont(undefined, 'bold');
+            const riskColor = item.level === 'high' ? [220, 38, 38] : item.level === 'medium' ? [245, 158, 11] : [34, 197, 94];
+            pdf.setTextColor(riskColor[0], riskColor[1], riskColor[2]);
+            yPosition = addWrappedText(`• ${cleanMarkdown(item.title)}`, margin + 5, yPosition, maxWidth - 5, 9, 'bold');
+            
+            pdf.setFont(undefined, 'normal');
+            pdf.setTextColor(0, 0, 0);
+            yPosition = addWrappedText(cleanMarkdown(item.description), margin + 10, yPosition, maxWidth - 10, 8);
+            yPosition += 5;
+          });
+          yPosition += 5;
+        }
+
+        // Recommendations
+        if (analysis.recommendations && analysis.recommendations.length > 0) {
+          // Check if we need a new page
+          if (yPosition > pageHeight - margin - 30) {
+            pdf.addPage();
+            yPosition = margin;
+          }
+
+          pdf.setFontSize(12);
+          pdf.setFont(undefined, 'bold');
+          pdf.setTextColor(0, 0, 0);
+          pdf.text('Recommendations', margin, yPosition);
+          yPosition += 8;
+
+          pdf.setFontSize(9);
+          analysis.recommendations.forEach((rec: any, index: number) => {
+            // Check if we need a new page
+            if (yPosition > pageHeight - margin - 10) {
+              pdf.addPage();
+              yPosition = margin;
+            }
+
+            pdf.setFont(undefined, 'bold');
+            yPosition = addWrappedText(`${index + 1}. ${cleanMarkdown(rec.title)}`, margin + 5, yPosition, maxWidth - 5, 9, 'bold');
+            
+            pdf.setFont(undefined, 'normal');
+            yPosition = addWrappedText(cleanMarkdown(rec.description), margin + 10, yPosition, maxWidth - 10, 8);
+            yPosition += 5;
+          });
+        }
+
+        // Save PDF
+        pdf.save(`analysis-report-${new Date().getTime()}.pdf`);
+
+        toast({
+          title: "Report downloaded",
+          description: "Your analysis report has been downloaded as PDF.",
+        });
+      } catch (error) {
+        console.error("Download error:", error);
+        toast({
+          title: "Download failed",
+          description: "Failed to download the report. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
 
   const toggleClause = (index: number) => {
     const newExpanded = new Set(expandedClauses);
@@ -92,10 +267,22 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
     ? analysis.summary.keyTerms
     : analysis.keyTerms;
   const documentTypeDisplay = (typeof analysis.summary === 'object' ? analysis.summary.documentType : null) || 
-                              document.documentType || t("upload.documentType");
+                              documentData.documentType || t("upload.documentType");
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Download Report Button */}
+      <div className="flex justify-end pb-1">
+        <SaveToggle
+          size="sm"
+          idleText="Save"
+          savedText="Saved"
+          loadingDuration={1200}
+          successDuration={1000}
+          onStatusChange={handleDownloadStatusChange}
+        />
+      </div>
+
       {/* Document Summary */}
       <div className="bg-card rounded-lg border border-border p-4 sm:p-6 analysis-card" data-testid="card-document-summary">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 gap-2">
@@ -106,7 +293,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
         </div>
         <div className="prose prose-sm max-w-none">
           <p className="text-sm sm:text-base text-foreground mb-3 sm:mb-4 leading-relaxed" data-testid="text-summary-content">
-            {summaryText}
+            {cleanMarkdown(summaryText)}
           </p>
           {summaryKeyTerms && Object.keys(summaryKeyTerms).length > 0 && (
             <div className="bg-accent/50 p-3 sm:p-4 rounded-md" data-testid="section-key-terms">
@@ -213,7 +400,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
                   data-testid={`button-toggle-clause-${index}`}
                 >
                   <span className="font-medium text-sm sm:text-base text-foreground pr-2" data-testid={`text-clause-title-${index}`}>
-                    {clause.title}
+                    {cleanMarkdown(clause.title)}
                   </span>
                   {expandedClauses.has(index) ? (
                     <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -260,7 +447,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
                           </TooltipProvider>
                         </div>
                         <p className="text-xs text-muted-foreground bg-muted/50 p-2 sm:p-3 rounded leading-relaxed break-words" data-testid={`text-clause-original-${index}`}>
-                          {clause.originalText}
+                          {cleanMarkdown(clause.originalText)}
                         </p>
                       </div>
                       <div className="min-w-0">
@@ -299,7 +486,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
                           </TooltipProvider>
                         </div>
                         <p className="text-xs sm:text-sm text-foreground leading-relaxed break-words" data-testid={`text-clause-simplified-${index}`}>
-                          {clause.simplifiedText}
+                          {cleanMarkdown(clause.simplifiedText)}
                         </p>
                       </div>
                     </div>
@@ -354,7 +541,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
       </div>
 
       {/* Q&A Section */}
-      <QAChat analysisId={analysis.id} documentContent={document.content} />
+      <QAChat analysisId={analysis.id} documentContent={documentData.content} />
 
       {/* Action Recommendations */}
       <div className="bg-card rounded-lg border border-border p-4 sm:p-6 analysis-card" data-testid="card-recommendations">
@@ -376,10 +563,10 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-sm sm:text-base text-foreground mb-2" data-testid={`text-rec-title-${index}`}>
-                    {rec.title}
+                    {cleanMarkdown(rec.title)}
                   </h4>
                   <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed" data-testid={`text-rec-description-${index}`}>
-                    {rec.description}
+                    {cleanMarkdown(rec.description)}
                   </p>
                 </div>
               </div>
