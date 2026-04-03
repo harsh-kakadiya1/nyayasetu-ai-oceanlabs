@@ -15,6 +15,12 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const quickStats = [
   { label: "Documents checked", value: "12K+", icon: FileText },
@@ -53,6 +59,29 @@ const featureBlocks = [
     text: "Share concise reports with your advocate and speed up legal consultations.",
     icon: ShieldCheck,
   },
+];
+
+const faqs = [
+  {
+    question: "What documents can I upload?",
+    answer: "You can upload PDF, DOCX, or TXT files. The system is optimized for legal contracts, agreements, and other structured legal documents."
+  },
+  {
+    question: "Is my data private and secure?",
+    answer: "Yes. We use privacy-first processing and your documents are handled securely. Data is not stored permanently and processing happens in a secure environment."
+  },
+  {
+    question: "Can Nyayasetu AI replace my lawyer?",
+    answer: "No. Nyayasetu AI provides informational analysis to help you understand contracts better, but it does not replace professional legal advice. Always consult a qualified advocate for important legal decisions."
+  },
+  {
+    question: "How long does the analysis take?",
+    answer: "Most documents are analyzed within seconds. Complex contracts may take up to a minute. The average response time is around 35 seconds."
+  },
+  {
+    question: "Do I need to create an account?",
+    answer: "No account is needed for your first scan. You can try the analysis immediately. For continued use and to save your history, you may want to sign up."
+  }
 ];
 
 export default function Home() {
@@ -183,6 +212,27 @@ export default function Home() {
                 <p className="mt-3 text-sm leading-relaxed text-[#567a80]">{text}</p>
               </article>
             ))}
+          </div>
+        </section>
+
+        <section className="mx-auto mb-16 max-w-6xl">
+          <div className="mb-7 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">FAQs</p>
+            <h2 className="font-display mt-2 text-2xl font-semibold text-[#1f383c] sm:text-3xl">Frequently asked questions</h2>
+          </div>
+          <div className="rounded-3xl border border-[#1c434a]/12 bg-white p-6 shadow-[0_12px_24px_rgba(26,55,61,0.08)] sm:p-8">
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map((faq, index) => (
+                <AccordionItem key={index} value={`item-${index}`} className="border-[#1c434a]/10">
+                  <AccordionTrigger className="text-left text-base font-medium text-[#1f3c41] hover:no-underline">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm leading-relaxed text-[#567a80]">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         </section>
 
