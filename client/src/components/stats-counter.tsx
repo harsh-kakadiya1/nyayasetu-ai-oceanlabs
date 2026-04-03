@@ -30,7 +30,7 @@ export default function StatsCounter({ stats }: StatsCounterProps) {
             }`}
             style={{ animationDelay: `${index * 120}ms` }}
           >
-            <Icon className="mb-3 h-5 w-5 text-[#235962] animate-float-up" style={{ animationDelay: `${index * 150}ms` }} />
+            <Icon className="mb-3 h-5 w-5 text-[#235962]" />
             <p className="font-display text-3xl font-semibold text-[#1f383c]">
               {value}
               {suffix && <span>{suffix}</span>}
