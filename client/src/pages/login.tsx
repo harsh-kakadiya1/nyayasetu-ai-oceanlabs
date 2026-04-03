@@ -46,32 +46,25 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black px-4 py-10 flex items-center justify-center">
-      {/* Background gradient orbs */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl opacity-20" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl opacity-20" />
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#f8f4ea] via-[#edf4f1] to-[#f4f8f7] px-4 py-10">
+      <div className="mx-auto w-full max-w-md rounded-3xl border border-[#2d575e]/15 bg-white/90 p-6 shadow-lg sm:p-8">
+        <h1 className="font-display text-3xl font-semibold text-[#1d3b40]">Login</h1>
+        <p className="mt-2 text-sm text-[#547980]">Access your analysis dashboard and saved history.</p>
 
-      <div className="relative mx-auto w-full max-w-md rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm p-8 sm:p-10">
-        <h1 className="font-display text-3xl font-bold text-white">Welcome back</h1>
-        <p className="mt-2 text-sm text-gray-400">Access your analysis dashboard and saved history.</p>
-
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username" className="text-gray-300">Username</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
               id="username"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               placeholder="Enter your username"
               autoComplete="username"
-              className="border-white/10 bg-white/5 text-white placeholder:text-gray-500 hover:border-white/20 focus:border-blue-500/50"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-gray-300">Password</Label>
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
@@ -79,27 +72,26 @@ export default function Login() {
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Enter your password"
               autoComplete="current-password"
-              className="border-white/10 bg-white/5 text-white placeholder:text-gray-500 hover:border-white/20 focus:border-blue-500/50"
             />
           </div>
 
-          <Button type="submit" className="w-full h-10 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all" disabled={isSubmitting}>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Signing in..." : "Sign in"}
           </Button>
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10"></div>
+              <div className="w-full border-t border-[#2d575e]/20"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-gradient-to-b from-gray-950 to-black px-2 text-gray-400">Or continue with</span>
+              <span className="bg-white px-2 text-[#547980]">Or continue with</span>
             </div>
           </div>
 
           <Button
             type="button"
             variant="outline"
-            className="w-full border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+            className="w-full border-[#2d575e]/20"
             onClick={googleLogin}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -124,9 +116,9 @@ export default function Login() {
           </Button>
         </form>
 
-        <p className="mt-6 text-sm text-gray-400">
+        <p className="mt-5 text-sm text-[#547980]">
           New here?{" "}
-          <Link href="/signup" className="font-semibold text-blue-400 hover:text-blue-300 transition-colors">
+          <Link href="/signup" className="font-semibold text-[#1f565f] hover:underline">
             Create an account
           </Link>
         </p>

@@ -187,29 +187,29 @@ export default function Dashboard() {
 	];
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
+		<div className="min-h-screen bg-gradient-to-br from-[#f8f4ea] via-[#edf4f1] to-[#f4f8f7]">
 			<div className={`flex h-screen transition-all duration-300 ${sidebarOpen ? '' : 'pl-0'}`}>
 				{/* Sidebar Toggle Button (when closed) */}
 				{!sidebarOpen && (
 					<button
 						onClick={() => setSidebarOpen(true)}
-						className="fixed left-4 top-20 z-50 w-10 h-10 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 text-white flex items-center justify-center shadow-lg hover:shadow-blue-500/50 transition-all"
+						className="fixed left-4 top-4 z-50 w-10 h-10 rounded-lg bg-[#1f565f] text-white flex items-center justify-center shadow-lg hover:bg-[#173f46] transition-colors"
 					>
 						<History className="h-5 w-5" />
 					</button>
 				)}
 
 				{/* Left Sidebar - History - Sticky */}
-				<aside className={`${sidebarOpen ? 'w-72' : 'w-0'} sticky top-0 h-screen flex-shrink-0 border-r border-white/10 bg-gray-950/80 backdrop-blur-sm flex flex-col transition-all duration-300 overflow-hidden`}>
+				<aside className={`${sidebarOpen ? 'w-72' : 'w-0'} sticky top-0 h-screen flex-shrink-0 border-r border-[#2d575e]/15 bg-white/80 backdrop-blur-sm flex flex-col transition-all duration-300 overflow-hidden`}>
 					{/* Sidebar Header with Toggle */}
-					<div className="p-4 border-b border-white/10 flex items-center justify-between">
+					<div className="p-3 border-b border-[#2d575e]/10 flex items-center justify-between">
 						<div className="flex items-center gap-2">
-							<History className="h-4 w-4 text-cyan-400" />
-							<span className="text-xs font-semibold uppercase tracking-widest text-gray-300">History</span>
+							<History className="h-4 w-4 text-[#4a7379]" />
+							<span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#4a7379]">History</span>
 						</div>
 						<button
 							onClick={() => setSidebarOpen(false)}
-							className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+							className="w-8 h-8 rounded-lg hover:bg-[#eef8f5] flex items-center justify-center text-[#6b8a90] hover:text-[#1f565f] transition-colors"
 						>
 							<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
@@ -218,13 +218,13 @@ export default function Dashboard() {
 					</div>
 
 					{/* New Analysis Button - Top */}
-					<div className="p-4 border-b border-white/10">
+					<div className="p-3 border-b border-[#2d575e]/10">
 						<Button
 							onClick={() => {
 								setShowResults(false);
 								setAnalysisResult(null);
 							}}
-							className="w-full h-10 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/50 text-white transition-all"
+							className="w-full h-10 rounded-xl bg-[#1f565f] hover:bg-[#173f46] text-white"
 						>
 							<Upload className="h-4 w-4 mr-2" />
 							New Analysis
@@ -236,13 +236,13 @@ export default function Dashboard() {
 						{historyLoading ? (
 							<div className="space-y-2">
 								{[...Array(4)].map((_, i) => (
-									<div key={i} className="h-14 bg-gray-800/50 rounded-lg animate-pulse" />
+									<div key={i} className="h-14 bg-gray-100 rounded-lg animate-pulse" />
 								))}
 							</div>
 						) : analyses.length === 0 ? (
 							<div className="text-center py-8 px-4">
-								<FileText className="mx-auto h-8 w-8 text-gray-600 mb-2" />
-								<p className="text-xs text-gray-500">No analyses yet</p>
+								<FileText className="mx-auto h-8 w-8 text-[#c4d4d6] mb-2" />
+								<p className="text-xs text-[#7a9a9e]">No analyses yet</p>
 							</div>
 						) : (
 							<div className="space-y-1">
@@ -250,18 +250,18 @@ export default function Dashboard() {
 									<button
 										key={analysis.id}
 										onClick={() => handleHistoryClick(analysis)}
-										className="w-full text-left p-3 rounded-lg hover:bg-white/10 transition-colors group"
+										className="w-full text-left p-3 rounded-xl hover:bg-[#eef8f5] transition-colors group"
 									>
 										<div className="flex items-start gap-2">
 											<div className="mt-0.5">
-												<FileText className="h-4 w-4 text-gray-500 group-hover:text-cyan-400 transition-colors" />
+												<FileText className="h-4 w-4 text-[#7a9a9e] group-hover:text-[#1f565f]" />
 											</div>
 											<div className="flex-1 min-w-0">
-												<p className="text-sm text-white font-medium truncate">
+												<p className="text-sm text-[#1d3b40] font-medium truncate">
 													{analysis.summary.slice(0, 45)}...
 												</p>
 												<div className="flex items-center gap-2 mt-1">
-													<span className="text-[10px] text-gray-500">{formatDate(analysis.createdAt)}</span>
+													<span className="text-[10px] text-[#7a9a9e]">{formatDate(analysis.createdAt)}</span>
 												</div>
 											</div>
 										</div>
@@ -276,27 +276,27 @@ export default function Dashboard() {
 				<main className="flex-1 overflow-y-auto">
 					<div className="max-w-5xl mx-auto p-6 lg:p-8">
 						{/* Header */}
-						<div className="mb-8">
-							<h1 className="font-display text-3xl font-bold text-white">
+						<div className="mb-6">
+							<h1 className="font-display text-2xl font-semibold text-[#1d3b40]">
 								{t("analysis.title")}
 							</h1>
-							<p className="text-base text-gray-400 mt-2">
+							<p className="text-sm text-[#6b8a90] mt-1">
 								Upload a document to get AI-powered legal analysis
 							</p>
 						</div>
 
 						{/* Stats Bar */}
 						{showResults && analysisResult?.analysis && (
-							<div className="mb-8 flex flex-wrap gap-3">
+							<div className="mb-6 flex flex-wrap gap-3">
 								{stats.map(({ label, value, icon: Icon }) => (
 									<div
 										key={label}
-										className="flex items-center gap-3 px-4 py-2 rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm hover:border-white/20 transition-all"
+										className="flex items-center gap-3 px-4 py-2 rounded-full border border-[#2c5157]/12 bg-white/60"
 									>
-										<Icon className="h-4 w-4 text-cyan-400" />
+										<Icon className="h-4 w-4 text-[#1f565f]" />
 										<div className="flex items-center gap-2">
-											<span className="text-sm font-semibold text-white">{value}</span>
-											<span className="text-xs text-gray-400">{label}</span>
+											<span className="text-sm font-semibold text-[#1d3b40]">{value}</span>
+											<span className="text-xs text-[#6b8a90]">{label}</span>
 										</div>
 									</div>
 								))}
@@ -305,19 +305,19 @@ export default function Dashboard() {
 
 						{/* Horizontal Upload Section */}
 						{(!showResults || isAnalyzing) && (
-							<section className="mb-8 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-8 backdrop-blur-sm">
-								<div className="flex items-start gap-4 mb-6">
-									<div className="flex-shrink-0 rounded-lg bg-blue-500/20 p-2">
-										<Upload className="h-5 w-5 text-blue-400" />
+							<section className="mb-6 rounded-2xl border border-[#2d575e]/15 bg-white/75 p-6 backdrop-blur-sm">
+								<div className="flex items-start gap-4 mb-4">
+									<div className="flex-shrink-0 rounded-lg bg-[#f6b26b]/20 p-2">
+										<Upload className="h-5 w-5 text-[#f6b26b]" />
 									</div>
 									<div>
-										<h2 className="font-display text-lg font-semibold text-white">{t("upload.title")}</h2>
-										<p className="text-sm text-gray-400">{t("welcome.description")}</p>
+										<h2 className="font-display text-lg font-semibold text-[#1d3b40]">{t("upload.title")}</h2>
+										<p className="text-sm text-[#6b8a90]">{t("welcome.description")}</p>
 									</div>
 								</div>
 
 								{/* Horizontal Upload Component */}
-								<div className="border-t border-white/10 pt-6">
+								<div className="border-t border-[#2d575e]/10 pt-4">
 									<DocumentUpload
 										onAnalysisStart={handleAnalysisStart}
 										onAnalysisComplete={handleAnalysisComplete}
@@ -330,18 +330,18 @@ export default function Dashboard() {
 
 						{/* Analysis Results Section */}
 						{isAnalyzing ? (
-							<section className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-8 backdrop-blur-sm">
+							<section className="rounded-2xl border border-[#284d54]/16 bg-white/90 p-6 shadow-lg">
 								<LoadingAnalysis />
 							</section>
 							) : showResults && analysisResult && analysisResult.analysis ? (
-							<section className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-8 backdrop-blur-sm">
-								<div className="flex items-center justify-between mb-6">
+							<section className="rounded-2xl border border-[#284d54]/16 bg-white/90 p-6 shadow-lg">
+								<div className="flex items-center justify-between mb-4">
 									<div className="flex items-center gap-2">
-										<CheckCircle2 className="h-5 w-5 text-emerald-500" />
-										<h2 className="font-display text-xl font-semibold text-white">Analysis Results</h2>
+										<CheckCircle2 className="h-5 w-5 text-emerald-600" />
+										<h2 className="font-display text-xl font-semibold text-[#1d3b40]">Analysis Results</h2>
 									</div>
 									{analysisResult.document?.filename && (
-										<span className="text-sm text-gray-300 bg-blue-500/20 px-3 py-1 rounded-full border border-blue-500/30">
+										<span className="text-sm text-[#6b8a90] bg-[#eef8f5] px-3 py-1 rounded-full">
 											{analysisResult.document.filename}
 										</span>
 									)}
@@ -350,14 +350,14 @@ export default function Dashboard() {
 							</section>
 						) : (
 							/* Empty State */
-							<section className="rounded-xl border border-dashed border-white/10 bg-gradient-to-br from-white/5 to-transparent p-12 text-center">
-								<div className="mx-auto mb-6 inline-flex rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 p-5">
-									<FileText className="h-12 w-12 text-cyan-400" />
+							<section className="rounded-2xl border border-dashed border-[#2e5960]/20 bg-gradient-to-br from-white/50 to-[#f9fffe] p-12 text-center">
+								<div className="mx-auto mb-5 inline-flex rounded-2xl bg-gradient-to-br from-[#e7f6f1] to-[#f0f8f5] p-5">
+									<FileText className="h-12 w-12 text-[#1f565f]" />
 								</div>
-								<h3 className="font-display text-xl font-semibold text-white">
+								<h3 className="font-display text-xl font-semibold text-[#1f3d42]">
 									{t("welcome.title")}
 								</h3>
-								<p className="mx-auto mt-3 max-w-md text-sm text-gray-400">
+								<p className="mx-auto mt-3 max-w-md text-sm text-[#557980]">
 									{t("welcome.description")}
 								</p>
 							</section>
