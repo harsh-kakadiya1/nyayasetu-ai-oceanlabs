@@ -41,8 +41,14 @@ async function ensureTables() {
         CREATE TABLE IF NOT EXISTS users (
           id TEXT PRIMARY KEY,
           username TEXT UNIQUE NOT NULL,
-          password TEXT NOT NULL
+          password TEXT NOT NULL,
+          tokens INTEGER NOT NULL DEFAULT 3
         )
+      `);
+
+      await db.query(`
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS tokens INTEGER NOT NULL DEFAULT 3
       `);
 
       await db.query(`
@@ -104,8 +110,8 @@ export class DbStorage {
     await ensureTables();
     const id = randomUUID();
     const result = await getPool().query<User>(
-      `INSERT INTO users (id, username, password) VALUES ($1, $2, $3) RETURNING id, username, password`,
-      [id, insertUser.username, insertUser.password],
+      `INSERT INTO users (id, username, password, tokens) VALUES ($1, $2, $3, $4) RETURNING id, username, password, tokens`,
+      [id, insertUser.username, insertUser.password, insertUser.tokens ?? 3],
     );
     return result.rows[0];
   }
@@ -118,7 +124,7 @@ export class DbStorage {
         UPDATE users
         SET username = $2
         WHERE id = $1
-        RETURNING id, username, password
+        RETURNING id, username, password, tokens
         `,
         [userId, username],
       );
@@ -134,7 +140,7 @@ export class DbStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     await ensureTables();
     const result = await getPool().query<User>(
-      `SELECT id, username, password FROM users WHERE username = $1 LIMIT 1`,
+      `SELECT id, username, password, tokens FROM users WHERE username = $1 LIMIT 1`,
       [username],
     );
     return result.rows[0];
@@ -143,10 +149,48 @@ export class DbStorage {
   async getUser(id: string): Promise<User | undefined> {
     await ensureTables();
     const result = await getPool().query<User>(
-      `SELECT id, username, password FROM users WHERE id = $1 LIMIT 1`,
+      `SELECT id, username, password, tokens FROM users WHERE id = $1 LIMIT 1`,
       [id],
     );
     return result.rows[0];
+  }
+
+  async consumeUserToken(userId: string): Promise<number | null> {
+    await ensureTables();
+    const result = await getPool().query<{ tokens: number }>(
+      `
+      UPDATE users
+      SET tokens = tokens - 1
+      WHERE id = $1 AND tokens > 0
+      RETURNING tokens
+      `,
+      [userId],
+    );
+
+    if (result.rowCount === 0) {
+      return null;
+    }
+
+    return result.rows[0].tokens;
+  }
+
+  async addUserTokens(userId: string, amount: number): Promise<number | null> {
+    await ensureTables();
+    const result = await getPool().query<{ tokens: number }>(
+      `
+      UPDATE users
+      SET tokens = GREATEST(0, tokens + $2)
+      WHERE id = $1
+      RETURNING tokens
+      `,
+      [userId, amount],
+    );
+
+    if (result.rowCount === 0) {
+      return null;
+    }
+
+    return result.rows[0].tokens;
   }
 
   async createDocument(insertDocument: InsertDocument): Promise<Document> {

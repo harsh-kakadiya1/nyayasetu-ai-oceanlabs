@@ -226,7 +226,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="mx-auto mb-16 max-w-6xl">
+        <section id="pricing" className="mx-auto mb-16 max-w-6xl">
           <div className="mb-10 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">Pricing</p>
             <h2 className="font-display mt-2 text-3xl font-semibold text-[#1f383c] sm:text-4xl">Simple, Transparent Pricing</h2>

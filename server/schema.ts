@@ -4,6 +4,7 @@ import { z } from "zod";
 export const insertUserSchema = z.object({
   username: z.string(),
   password: z.string(),
+  tokens: z.number().int().min(0).optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

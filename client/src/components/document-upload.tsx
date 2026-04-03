@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { UploadCloud, FileText, AlertCircle } from "lucide-react";
+import { UploadCloud, FileText, AlertCircle, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { API_ENDPOINTS } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface DocumentUploadProps {
   onAnalysisStart: () => void;
@@ -28,8 +30,10 @@ export default function DocumentUpload({
   const [documentType, setDocumentType] = useState("auto-detect");
   const [summaryLength, setSummaryLength] = useState("standard");
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isSubscriptionOpen, setIsSubscriptionOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { user, updateTokens } = useAuth();
 
   const handleFileSelect = (file: File) => {
     const maxSize = 10 * 1024 * 1024; // 10MB
@@ -97,6 +101,11 @@ export default function DocumentUpload({
       return;
     }
 
+    if ((user?.tokens ?? 0) <= 0) {
+      setIsSubscriptionOpen(true);
+      return;
+    }
+
     onAnalysisStart();
 
     try {
@@ -140,12 +149,21 @@ export default function DocumentUpload({
       }
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Analysis failed');
+        const error = await response.json().catch(() => ({}));
+        const statusCode = response.status;
+        const errorMessage = error.error || 'Analysis failed';
+        if (statusCode === 402 || error.code === 'TOKENS_EXHAUSTED') {
+          updateTokens(0);
+          setIsSubscriptionOpen(true);
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
       console.log('[UPLOAD] ✓ Analysis successful');
+      if (typeof result.remainingTokens === 'number') {
+        updateTokens(result.remainingTokens);
+      }
       onAnalysisComplete(result);
 
       // Reset form
@@ -163,6 +181,10 @@ export default function DocumentUpload({
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       let toastTitle = t('upload.analysisError');
       let toastDescription = t('upload.analysisErrorDesc');
+
+      if (errorMessage.includes('No tokens remaining')) {
+        return;
+      }
       
       if (errorMessage.includes('overloaded') || errorMessage.includes('503')) {
         toastTitle = t('upload.serviceUnavailable');
@@ -184,8 +206,38 @@ export default function DocumentUpload({
   };
 
   return (
-    <div className="space-y-5 mb-4 sm:mb-6" data-testid="card-document-upload">
-      <h3 className="text-base sm:text-lg font-semibold text-foreground" data-testid="text-upload-title">{t('upload.title')}</h3>
+    <>
+      <Dialog open={isSubscriptionOpen} onOpenChange={setIsSubscriptionOpen}>
+        <DialogContent className="max-w-md rounded-2xl border-[#1f565f]/20 bg-[#fdfdf9] p-6">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-[#1d3b40]">
+              <Crown className="h-5 w-5 text-[#d57b21]" />
+              Subscription Required
+            </DialogTitle>
+            <DialogDescription className="text-sm text-[#5d787d]">
+              You have used all 3 free tokens. Subscribe to continue analyzing documents.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg border border-[#1f565f]/15 bg-white p-3 text-sm text-[#335c62]">
+            Remaining tokens: <span className="font-semibold">{user?.tokens ?? 0}</span>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              className="w-full bg-[#1f565f] text-white hover:bg-[#173f46]"
+              onClick={() => {
+                setIsSubscriptionOpen(false);
+                window.location.href = "/#pricing";
+              }}
+            >
+              View Plans
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className="space-y-5 mb-4 sm:mb-6" data-testid="card-document-upload">
+        <h3 className="text-base sm:text-lg font-semibold text-foreground" data-testid="text-upload-title">{t('upload.title')}</h3>
       
       {/* File Upload Area */}
       <div 
@@ -297,25 +349,26 @@ export default function DocumentUpload({
         </div>
       </div>
 
-      <Button 
-        className="w-full mt-3 sm:mt-4 bg-primary text-primary-foreground hover:bg-primary/90 h-10 sm:h-11 text-sm sm:text-base"
-        onClick={handleAnalyze}
-        disabled={isAnalyzing || (!selectedFile && !textContent.trim())}
-        data-testid="button-analyze-document"
-      >
-        {isAnalyzing ? (
-          <div className="flex items-center justify-center">
-            <div className="loading-dots mr-3">
-              <div></div>
-              <div></div>
-              <div></div>
+        <Button 
+          className="w-full mt-3 sm:mt-4 bg-primary text-primary-foreground hover:bg-primary/90 h-10 sm:h-11 text-sm sm:text-base"
+          onClick={handleAnalyze}
+          disabled={isAnalyzing || (!selectedFile && !textContent.trim())}
+          data-testid="button-analyze-document"
+        >
+          {isAnalyzing ? (
+            <div className="flex items-center justify-center">
+              <div className="loading-dots mr-3">
+                <div></div>
+                <div></div>
+                <div></div>
+              </div>
+              {t('upload.analyzing')}
             </div>
-            {t('upload.analyzing')}
-          </div>
-        ) : (
-          t('upload.analyze')
-        )}
-      </Button>
-    </div>
+          ) : (
+            t('upload.analyze')
+          )}
+        </Button>
+      </div>
+    </>
   );
 }

@@ -4,6 +4,7 @@ import API_ENDPOINTS from "@/lib/api";
 interface User {
   id: string;
   username: string;
+  tokens: number;
 }
 
 interface AuthContextType {
@@ -13,6 +14,7 @@ interface AuthContextType {
   signup: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   updateProfile: (username: string) => Promise<{ ok: boolean; error?: string }>;
+  updateTokens: (tokens: number) => void;
   checkAuth: () => Promise<void>;
   googleLogin: () => void;
 }
@@ -123,6 +125,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.location.href = `${apiUrl}/api/auth/google`;
   };
 
+  const updateTokens = (tokens: number) => {
+    setUser((previous) => {
+      if (!previous) {
+        return previous;
+      }
+
+      return {
+        ...previous,
+        tokens,
+      };
+    });
+  };
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -137,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signup,
         logout,
         updateProfile,
+        updateTokens,
         checkAuth,
       }}
     >

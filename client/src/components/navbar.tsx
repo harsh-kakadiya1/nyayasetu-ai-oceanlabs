@@ -218,6 +218,10 @@ export default function Navbar() {
 
                   {isSettingsOpen && (
                     <div className="space-y-2 rounded-lg border border-[#ffffff18] bg-[#ffffff08] p-3 text-sm">
+                      <div className="rounded-md border border-[#ffffff22] bg-[#1f565f33] px-3 py-2">
+                        <p className="text-xs uppercase tracking-[0.08em] text-[#b8d5da]">Free tokens</p>
+                        <p className="mt-1 text-base font-semibold text-white">{user.tokens}</p>
+                      </div>
                       <p className="text-[#c6d0d2]">Manage analysis history</p>
                       <Button
                         type="button"

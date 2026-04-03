@@ -53,7 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await storage.createUser({ username, password: hashedPassword });
 
-      res.json({ id: user.id, username: user.username });
+      res.json({ id: user.id, username: user.username, tokens: user.tokens });
     } catch (error) {
       console.error("Registration error:", error);
       res.status(500).json({ error: "Failed to register user" });
@@ -75,7 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ error: "Failed to establish session" });
         }
 
-        res.json({ id: user.id, username: user.username });
+        res.json({ id: user.id, username: user.username, tokens: user.tokens });
       });
     })(req, res, next);
   });
@@ -91,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get(["/api/auth/me", "/api/auth-me"], (req, res) => {
     if (req.isAuthenticated()) {
-      return res.json({ id: req.user.id, username: req.user.username });
+      return res.json({ id: req.user.id, username: req.user.username, tokens: req.user.tokens });
     }
 
     return res.status(401).json({ error: "Not authenticated" });
@@ -111,7 +111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "User not found" });
       }
 
-      res.json({ id: updatedUser.id, username: updatedUser.username });
+      res.json({ id: updatedUser.id, username: updatedUser.username, tokens: updatedUser.tokens });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to update profile";
       if (message.includes("already exists")) {
@@ -177,10 +177,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Upload and analyze document via file
   app.post(["/api/documents/upload", "/api/documents-upload"], requireAuth, upload.single('document'), async (req, res) => {
+    let tokenConsumed = false;
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
+
+      const remainingTokens = await storage.consumeUserToken(req.user.id);
+      if (remainingTokens === null) {
+        return res.status(402).json({
+          error: "No tokens remaining. Please subscribe to continue analysis.",
+          code: "TOKENS_EXHAUSTED",
+          tokens: 0,
+        });
+      }
+      tokenConsumed = true;
 
       const { documentType, summaryLength, language } = req.body;
       const preferredLanguage = language || req.headers['accept-language'] || 'en';
@@ -233,8 +244,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           clauses: analysis.clauses,
           recommendations: analysis.recommendations,
         },
+        remainingTokens,
       });
     } catch (error) {
+      if (tokenConsumed) {
+        await storage.addUserTokens(req.user.id, 1);
+      }
       console.error("Document upload error:", error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : "Failed to process document" 
@@ -244,6 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Analyze document via text input
   app.post(["/api/documents/analyze-text", "/api/documents-analyze-text"], requireAuth, async (req, res) => {
+    let tokenConsumed = false;
     try {
       const { content, documentType, summaryLength, language } = req.body;
       const preferredLanguage = language || req.headers['accept-language'] || 'en';
@@ -251,6 +267,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!content || typeof content !== 'string') {
         return res.status(400).json({ error: "Document content is required" });
       }
+
+      const remainingTokens = await storage.consumeUserToken(req.user.id);
+      if (remainingTokens === null) {
+        return res.status(402).json({
+          error: "No tokens remaining. Please subscribe to continue analysis.",
+          code: "TOKENS_EXHAUSTED",
+          tokens: 0,
+        });
+      }
+      tokenConsumed = true;
 
       // Parse text content
       const parsedDoc = parseTextContent(content);
@@ -300,8 +326,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           clauses: analysis.clauses,
           recommendations: analysis.recommendations,
         },
+        remainingTokens,
       });
     } catch (error) {
+      if (tokenConsumed) {
+        await storage.addUserTokens(req.user.id, 1);
+      }
       console.error("Text analysis error:", error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : "Failed to analyze document" 

@@ -6,6 +6,8 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUsername(userId: string, username: string): Promise<User | undefined>;
+  consumeUserToken(userId: string): Promise<number | null>;
+  addUserTokens(userId: string, amount: number): Promise<number | null>;
   
   createDocument(document: InsertDocument): Promise<Document>;
   getDocument(id: string): Promise<Document | undefined>;
@@ -46,7 +48,7 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id };
+    const user: User = { ...insertUser, id, tokens: insertUser.tokens ?? 3 };
     this.users.set(id, user);
     return user;
   }
@@ -66,6 +68,28 @@ export class MemStorage implements IStorage {
     const updatedUser: User = { ...user, username };
     this.users.set(userId, updatedUser);
     return updatedUser;
+  }
+
+  async consumeUserToken(userId: string): Promise<number | null> {
+    const user = this.users.get(userId);
+    if (!user || user.tokens <= 0) {
+      return null;
+    }
+
+    const remainingTokens = user.tokens - 1;
+    this.users.set(userId, { ...user, tokens: remainingTokens });
+    return remainingTokens;
+  }
+
+  async addUserTokens(userId: string, amount: number): Promise<number | null> {
+    const user = this.users.get(userId);
+    if (!user) {
+      return null;
+    }
+
+    const updatedTokens = Math.max(0, user.tokens + amount);
+    this.users.set(userId, { ...user, tokens: updatedTokens });
+    return updatedTokens;
   }
 
   async createDocument(insertDocument: InsertDocument): Promise<Document> {
