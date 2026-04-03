@@ -22,7 +22,7 @@ export default function Landing() {
 
   const quickStats = [
     { label: t("landing.quickStats.documentsChecked"), value: "12K+", icon: FileText },
-    { label: t("landing.quickStats.averageResponse"), value: "35s", icon: Clock3 },
+    { label: t("landing.quickStats.averageResponse"), value: "3.5s", icon: Clock3 },
     { label: t("landing.quickStats.riskCuesFlagged"), value: "94%", icon: TriangleAlert },
   ];
 
