@@ -172,7 +172,7 @@ export default function Landing() {
 
         <StatsCounter stats={quickStats} />
 
-        <div className="px-4 sm:px-6 lg:px-10">
+        <div className="mt-12 px-4 sm:mt-16 sm:px-6 lg:px-10">
         <section className="mx-auto mb-16 max-w-6xl rounded-3xl border border-[#1b3f45]/15 bg-white/75 p-6 backdrop-blur-sm sm:p-8 lg:p-10">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -226,7 +226,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section id="pricing" className="mx-auto mb-16 max-w-6xl">
+        <section id="pricing" className="mx-auto mb-16 max-w-6xl scroll-mt-24">
           <div className="mb-10 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">{t("landing.pricing.label")}</p>
             <h2 className="font-display mt-2 text-3xl font-semibold text-[#1f383c] sm:text-4xl">{t("landing.pricing.title")}</h2>
@@ -275,7 +275,7 @@ export default function Landing() {
         </section>
 
 
-        <section id="faqs" className="mx-auto mb-16 max-w-6xl">
+        <section id="faqs" className="mx-auto mb-16 max-w-6xl scroll-mt-24">
           <div className="mb-7 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">{t("landing.faqs.label")}</p>
             <h2 className="font-display mt-2 text-2xl font-semibold text-[#1f383c] sm:text-3xl">{t("landing.faqs.title")}</h2>

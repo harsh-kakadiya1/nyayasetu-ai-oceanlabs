@@ -8,7 +8,6 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
-import Signup from "@/pages/signup";
 import NotFound from "@/pages/not-found";
 import "./i18n"; // Initialize i18n
 import Navbar from "@/components/navbar";
@@ -32,7 +31,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/login" component={Login} />
-      <Route path="/signup" component={Signup} />
+      <Route path="/signup" component={Login} />
       <Route path="/dashboard" component={ProtectedDashboard} />
       <Route component={NotFound} />
     </Switch>

@@ -14,7 +14,7 @@ import API_ENDPOINTS from "@/lib/api";
 export default function Navbar() {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -27,6 +27,37 @@ export default function Navbar() {
   }, [user?.username]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  const scrollToLandingSection = (sectionId: "pricing" | "faqs") => {
+    const smoothScroll = () => {
+      const target = document.getElementById(sectionId);
+      if (!target) {
+        return false;
+      }
+
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      return true;
+    };
+
+    setIsMenuOpen(false);
+
+    if (location === "/") {
+      smoothScroll();
+      return;
+    }
+
+    setLocation("/");
+
+    let attempts = 0;
+    const maxAttempts = 20;
+    const intervalId = window.setInterval(() => {
+      attempts += 1;
+      const done = smoothScroll();
+      if (done || attempts >= maxAttempts) {
+        window.clearInterval(intervalId);
+      }
+    }, 80);
+  };
 
   const initials = (user?.username || "U")
     .trim()
@@ -134,12 +165,20 @@ export default function Navbar() {
                 </Link>
               ) : (
                 <>
-                  <a href="/#pricing" className="flex h-10 items-center px-2 text-sm font-medium text-[#5f8187] transition-colors hover:text-[#1f4f57] lg:text-base">
+                  <button
+                    type="button"
+                    onClick={() => scrollToLandingSection("pricing")}
+                    className="flex h-10 items-center px-2 text-sm font-medium text-[#5f8187] transition-colors hover:text-[#1f4f57] lg:text-base"
+                  >
                     {t("navigation.pricing")}
-                  </a>
-                  <a href="/#faqs" className="flex h-10 items-center px-2 text-sm font-medium text-[#5f8187] transition-colors hover:text-[#1f4f57] lg:text-base">
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollToLandingSection("faqs")}
+                    className="flex h-10 items-center px-2 text-sm font-medium text-[#5f8187] transition-colors hover:text-[#1f4f57] lg:text-base"
+                  >
                     {t("navigation.faqs")}
-                  </a>
+                  </button>
                 </>
               )}
           <div className="flex h-10 items-center">
@@ -259,18 +298,14 @@ export default function Navbar() {
               </HoverCardContent>
             </HoverCard>
           ) : (
-            <>
-              <Link href="/login">
-                <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]">
-                  {t("navbar.login")}
-                </Button>
-              </Link>
-              <Link href="/signup">
-                <Button variant="ghost" size="sm" className="text-[#5f8187] hover:text-[#1f4f57]">
-                  {t("navbar.signup")}
-                </Button>
-              </Link>
-            </>
+            <Link href="/login">
+              <Button
+                size="sm"
+                className="rounded-full bg-[#1f565f] px-5 text-white shadow-[0_8px_18px_rgba(31,86,95,0.22)] hover:bg-[#173f46]"
+              >
+                {t("navigation.getStarted")}
+              </Button>
+            </Link>
           )}
             </div>
           </div>
@@ -308,20 +343,20 @@ export default function Navbar() {
                 </Link>
               ) : (
                 <>
-                  <a
-                    href="/#pricing"
-                    onClick={() => setIsMenuOpen(false)}
+                  <button
+                    type="button"
+                    onClick={() => scrollToLandingSection("pricing")}
                     className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
                   >
                     {t("navigation.pricing")}
-                  </a>
-                  <a
-                    href="/#faqs"
-                    onClick={() => setIsMenuOpen(false)}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollToLandingSection("faqs")}
                     className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
                   >
                     {t("navigation.faqs")}
-                  </a>
+                  </button>
                 </>
               )}
             <div className="border-t border-[#2f5960]/20 pt-3">
@@ -338,18 +373,11 @@ export default function Navbar() {
                   </button>
                 </>
               ) : (
-                <>
-                  <Link href="/login" onClick={() => setIsMenuOpen(false)}>
-                    <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
-                      {t("navbar.login")}
-                    </div>
-                  </Link>
-                  <Link href="/signup" onClick={() => setIsMenuOpen(false)}>
-                    <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
-                      {t("navbar.signup")}
-                    </div>
-                  </Link>
-                </>
+                <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                  <div className="block rounded-lg bg-[#1f565f] px-4 py-2 text-base font-semibold text-white transition-colors hover:bg-[#173f46]">
+                    {t("navigation.getStarted")}
+                  </div>
+                </Link>
               )}
             </div>
             </div>

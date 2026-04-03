@@ -291,7 +291,7 @@
       "highlight": "before they understand you.",
       "description": "Nyayasetu AI turns legal complexity into clear action points. Upload any agreement, detect hidden risk, and prepare better questions before you sign.",
       "cta": "Start free analysis",
-      "subCta": "No account needed for first scan"
+      "subCta": "Use your free credits to start analyzing"
     },
     "trust": {
       "title": "Why teams trust this",
@@ -340,49 +340,49 @@
     },
     "pricing": {
       "label": "Pricing",
-      "title": "Simple, Transparent Pricing",
-      "subtitle": "Choose the plan that fits your needs",
+      "title": "Flexible Credit-Based Access",
+      "subtitle": "No weekly or monthly subscriptions. Use credits based on your needs.",
       "plans": {
         "starter": {
           "name": "Starter",
-          "description": "For individuals exploring legal document analysis",
+          "description": "For free users getting started with document analysis",
           "price": "Free",
-          "period": "Forever free",
+          "period": "3 free credits",
           "features": [
-            "Up to 5 documents per month",
-            "Basic analysis & risk detection",
-            "Standard response time",
+            "Get 3 free credits on signup",
+            "1 credit = 1 document analysis",
+            "Basic analysis and risk detection",
             "No credit card required"
           ],
-          "cta": "Start Free Trial"
+          "cta": "Start with Free Credits"
         },
         "professional": {
           "name": "Professional",
-          "description": "For professionals and small teams",
+          "description": "50 credits for professionals who need higher usage",
           "price": "$29",
-          "period": "per month",
+          "period": "for 50 credits",
           "features": [
-            "Unlimited documents",
+            "50 credits included",
             "Advanced AI analysis",
             "Priority support",
-            "Analysis history (6 months)",
+            "Extended analysis history",
             "Custom risk thresholds",
             "Batch processing"
           ],
-          "cta": "Get Started"
+          "cta": "Choose Professional"
         },
         "enterprise": {
           "name": "Enterprise",
-          "description": "For organizations with advanced needs",
+          "description": "For organizations needing custom credits and controls",
           "price": "Custom",
-          "period": "contact us",
+          "period": "tailored credits",
           "features": [
             "Everything in Professional",
+            "Customized credit allocation",
             "Dedicated account manager",
             "API access",
             "Advanced security & compliance",
-            "Custom integrations",
-            "SLA guarantees"
+            "Custom integrations"
           ],
           "cta": "Contact Sales"
         }
