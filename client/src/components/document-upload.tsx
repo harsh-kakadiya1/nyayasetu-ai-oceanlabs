@@ -109,13 +109,11 @@ export default function DocumentUpload({
         formData.append('document', selectedFile);
         formData.append('documentType', documentType);
         formData.append('summaryLength', summaryLength);
+        formData.append('language', i18n.language);
 
         response = await fetch(API_ENDPOINTS.documents.upload, {
           method: 'POST',
           body: formData,
-          headers: {
-            'Accept-Language': i18n.language,
-          },
         });
         console.log(`[UPLOAD] Upload response status: ${response.status}`);
       } else {
@@ -125,7 +123,6 @@ export default function DocumentUpload({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept-Language': i18n.language,
           },
           body: JSON.stringify({
             content: textContent,

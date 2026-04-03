@@ -63,8 +63,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      const { documentType, summaryLength } = req.body;
-      const language = req.headers['accept-language'] || 'en';
+      const { documentType, summaryLength, language } = req.body;
+      const preferredLanguage = language || req.headers['accept-language'] || 'en';
       
       // Parse the uploaded document
       const parsedDoc = await parseUploadedDocument(req.file);
@@ -81,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Analyze document with Groq
       const startTime = Date.now();
-      const analysis = await analyzeDocument(parsedDoc.content, documentType, language);
+      const analysis = await analyzeDocument(parsedDoc.content, documentType, preferredLanguage as string);
       const processingTime = `${((Date.now() - startTime) / 1000).toFixed(1)} seconds`;
 
       // Create analysis record
@@ -143,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Analyze document with Groq
       const startTime = Date.now();
-      const analysis = await analyzeDocument(parsedDoc.content, documentType, preferredLanguage);
+      const analysis = await analyzeDocument(parsedDoc.content, documentType, preferredLanguage as string);
       const processingTime = `${((Date.now() - startTime) / 1000).toFixed(1)} seconds`;
 
       // Create analysis record
