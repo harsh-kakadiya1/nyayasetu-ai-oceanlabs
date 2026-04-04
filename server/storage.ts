@@ -280,6 +280,21 @@ async function initializeStorage() {
   console.log('===========================================================');
 }
 
-await initializeStorage();
+// Lazy initialization - will be initialized on first use
+let initialized = false;
+let initError: Error | null = null;
 
-export { storage };
+async function ensureInitialized() {
+  if (initialized) return;
+  if (initError) throw initError;
+  
+  try {
+    await initializeStorage();
+    initialized = true;
+  } catch (error) {
+    initError = error as Error;
+    throw initError;
+  }
+}
+
+export { storage, ensureInitialized };
