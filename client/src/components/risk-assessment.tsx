@@ -107,9 +107,6 @@ export default function RiskAssessment({ riskItems, riskLevel }: RiskAssessmentP
                       Section: {item.section}
                     </p>
                   )}
-                  <button className={`text-xs ${colors.text} hover:underline mt-2`} data-testid={`button-risk-details-${index}`}>
-                    View Details
-                  </button>
                 </div>
               </div>
             );
