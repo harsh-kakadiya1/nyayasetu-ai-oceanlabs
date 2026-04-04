@@ -14,7 +14,7 @@ interface StatsCounterProps {
 
 export default function StatsCounter({ stats }: StatsCounterProps) {
   return (
-    <section className="mx-auto mb-24 max-w-5xl px-4 sm:px-6 lg:px-10">
+    <section className="mx-auto mb-24 max-w-6xl px-4 sm:px-6 lg:px-10">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {stats.map(({ label, value, icon: Icon, suffix }) => (
           <article
