@@ -188,6 +188,19 @@ export default function Navbar() {
                   </button>
                 </>
               )}
+          {user?.isAdmin && (
+            <Link href="/admin">
+              <div className="flex h-10 items-center px-2">
+                <span
+                  className={`whitespace-nowrap text-sm font-medium transition-colors lg:text-base ${
+                    location === "/admin" ? "text-[#1f4f57]" : "text-[#5f8187] hover:text-[#1f4f57]"
+                  }`}
+                >
+                  Admin
+                </span>
+              </div>
+            </Link>
+          )}
           <div className="flex h-10 items-center">
                 <LanguageSelector />
               </div>

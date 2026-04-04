@@ -7,6 +7,7 @@ import { AnalysisProvider } from "@/contexts/AnalysisContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
+import Admin from "@/pages/admin";
 import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import NotFound from "@/pages/not-found";
@@ -24,7 +25,29 @@ function ProtectedDashboard() {
     return <Login />;
   }
 
+  if (user.isAdmin) {
+    return <Admin />;
+  }
+
   return <Dashboard />;
+}
+
+function ProtectedAdmin() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!user) {
+    return <Login />;
+  }
+
+  if (!user.isAdmin) {
+    return <Dashboard />;
+  }
+
+  return <Admin />;
 }
 
 function Router() {
@@ -34,6 +57,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       <Route path="/dashboard" component={ProtectedDashboard} />
+      <Route path="/admin" component={ProtectedAdmin} />
       <Route component={NotFound} />
     </Switch>
   );

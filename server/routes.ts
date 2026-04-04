@@ -11,6 +11,53 @@ import bcrypt from "bcrypt";
 import { requireAuth } from "./auth.js";
 import { normalizeEmailIdentifier } from "./emailUtils.js";
 
+const ADMIN_USERNAME = normalizeEmailIdentifier(process.env.ADMIN_USERNAME || "admin@nyayasetu.ai");
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Admin@12345";
+
+const PLAN_TOKEN_DEFAULTS: Record<"starter" | "professional" | "enterprise", number> = {
+  starter: 3,
+  professional: 50,
+  enterprise: 200,
+};
+
+function userIsAdmin(user: any): boolean {
+  if (!user) {
+    return false;
+  }
+  return user.role === "admin" || normalizeEmailIdentifier(String(user.username || "")) === ADMIN_USERNAME;
+}
+
+async function ensureAdminAccount() {
+  const existingAdmin = await storage.getUserByUsername(ADMIN_USERNAME);
+
+  if (existingAdmin) {
+    return;
+  }
+
+  const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+  await storage.createUser({
+    username: ADMIN_USERNAME,
+    password: hashedPassword,
+    role: "admin",
+    plan: "enterprise",
+    tokens: 10000,
+  });
+
+  console.log(`[ADMIN] Admin user auto-created: ${ADMIN_USERNAME}`);
+}
+
+function requireAdmin(req: any, res: any, next: any) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+
+  if (!userIsAdmin(req.user)) {
+    return res.status(403).json({ error: "Admin access required" });
+  }
+
+  return next();
+}
+
 // Configure multer for file uploads (memory storage - no files saved to disk)
 const upload = multer({
   storage: multer.memoryStorage(), // Store in memory instead of disk
@@ -31,6 +78,7 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   console.log('[ROUTES] Registering API routes...');
+  await ensureAdminAccount();
   
   // Health check - no auth required
   app.get("/api/health", (req, res) => {
@@ -47,6 +95,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Username and password are required" });
       }
 
+      if (username === ADMIN_USERNAME) {
+        return res.status(403).json({ error: "This username is reserved" });
+      }
+
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
         return res.status(400).json({ error: "Username already exists" });
@@ -55,7 +107,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await storage.createUser({ username, password: hashedPassword });
 
-      res.json({ id: user.id, username: user.username, tokens: user.tokens, plan: user.plan });
+      res.json({
+        id: user.id,
+        username: user.username,
+        tokens: user.tokens,
+        plan: user.plan,
+        role: user.role,
+        isAdmin: userIsAdmin(user),
+      });
     } catch (error) {
       console.error("Registration error:", error);
       res.status(500).json({ error: "Failed to register user" });
@@ -77,7 +136,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ error: "Failed to establish session" });
         }
 
-        res.json({ id: user.id, username: user.username, tokens: user.tokens, plan: user.plan });
+        res.json({
+          id: user.id,
+          username: user.username,
+          tokens: user.tokens,
+          plan: user.plan,
+          role: user.role,
+          isAdmin: userIsAdmin(user),
+        });
       });
     })(req, res, next);
   });
@@ -93,7 +159,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get(["/api/auth/me", "/api/auth-me"], (req, res) => {
     if (req.isAuthenticated()) {
-      return res.json({ id: req.user.id, username: req.user.username, tokens: req.user.tokens, plan: req.user.plan });
+      return res.json({
+        id: req.user.id,
+        username: req.user.username,
+        tokens: req.user.tokens,
+        plan: req.user.plan,
+        role: req.user.role,
+        isAdmin: userIsAdmin(req.user),
+      });
     }
 
     return res.status(401).json({ error: "Not authenticated" });
@@ -113,7 +186,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "User not found" });
       }
 
-      res.json({ id: updatedUser.id, username: updatedUser.username, tokens: updatedUser.tokens, plan: updatedUser.plan });
+      res.json({
+        id: updatedUser.id,
+        username: updatedUser.username,
+        tokens: updatedUser.tokens,
+        plan: updatedUser.plan,
+        role: updatedUser.role,
+        isAdmin: userIsAdmin(updatedUser),
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to update profile";
       if (message.includes("already exists")) {
@@ -158,7 +238,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ? "account-created"
             : "signed-in";
 
-        res.redirect(`${frontendUrl}/dashboard?auth=success&oauth=${oauthNotice}`);
+        const redirectPath = userIsAdmin(user) ? "admin" : "dashboard";
+        res.redirect(`${frontendUrl}/${redirectPath}?auth=success&oauth=${oauthNotice}`);
       });
     })(req, res, next);
   });
@@ -176,6 +257,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "GET /api/auth/google/callback",
         "POST /api/auth/logout",
         "GET /api/auth/me",
+        "GET /api/admin/users",
+        "PATCH /api/admin/users/:userId",
         "POST /api/documents/upload",
         "POST /api/documents/analyze-text", 
         "GET /api/analysis/:id/messages",
@@ -520,6 +603,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/admin/users", requireAdmin, async (_req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      const payload = users.map((user) => ({
+        id: user.id,
+        username: user.username,
+        tokens: user.tokens,
+        plan: user.plan,
+        role: user.role ?? "user",
+        isAdmin: userIsAdmin(user),
+      }));
+
+      res.json(payload);
+    } catch (error) {
+      console.error("[ADMIN] Failed to get users:", error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  app.patch("/api/admin/users/:userId", requireAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const requestedPlan = req.body?.plan ? String(req.body.plan).toLowerCase() : undefined;
+      const requestedTokens = req.body?.tokens;
+      const hasPlan = typeof requestedPlan === "string";
+      const hasTokens = requestedTokens !== undefined;
+
+      if (!hasPlan && !hasTokens) {
+        return res.status(400).json({ error: "Provide at least one field: plan or tokens" });
+      }
+
+      let plan: "starter" | "professional" | "enterprise" | undefined;
+      if (hasPlan) {
+        if (!["starter", "professional", "enterprise"].includes(requestedPlan!)) {
+          return res.status(400).json({ error: "Invalid plan" });
+        }
+        plan = requestedPlan as "starter" | "professional" | "enterprise";
+      }
+
+      let tokens: number | undefined;
+      if (hasTokens) {
+        const parsed = Number(requestedTokens);
+        if (!Number.isInteger(parsed) || parsed < 0) {
+          return res.status(400).json({ error: "tokens must be a non-negative integer" });
+        }
+        tokens = parsed;
+      }
+
+      const finalTokens = tokens ?? (plan ? PLAN_TOKEN_DEFAULTS[plan] : undefined);
+
+      const updated = await storage.adminUpdateUser(userId, { plan, tokens: finalTokens });
+
+      if (!updated) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      return res.json({
+        id: updated.id,
+        username: updated.username,
+        tokens: updated.tokens,
+        plan: updated.plan,
+        role: updated.role,
+        isAdmin: userIsAdmin(updated),
+      });
+    } catch (error) {
+      console.error("[ADMIN] Failed to update user:", error);
+      return res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+
   app.post("/api/subscription/activate", requireAuth, async (req, res) => {
     try {
       const requestedPlan = String(req.body?.plan || "").toLowerCase();
@@ -529,12 +682,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!allowedPlans.includes(requestedPlan as any)) {
         return res.status(400).json({ error: "Invalid plan" });
       }
-
-      const tokensByPlan: Record<(typeof allowedPlans)[number], number> = {
-        starter: 3,
-        professional: 50,
-        enterprise: 200,
-      };
 
       const plan = requestedPlan as (typeof allowedPlans)[number];
 
@@ -547,7 +694,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const updated = await storage.updateUserPlan(req.user.id, plan, tokensByPlan[plan]);
+      const updated = await storage.updateUserPlan(req.user.id, plan, PLAN_TOKEN_DEFAULTS[plan]);
 
       if (!updated) {
         return res.status(404).json({ error: "User not found" });
@@ -560,6 +707,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: updated.username,
           tokens: updated.tokens,
           plan: updated.plan,
+          role: updated.role,
+          isAdmin: userIsAdmin(updated),
         },
       });
     } catch (error) {

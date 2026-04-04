@@ -6,13 +6,15 @@ interface User {
   username: string;
   tokens: number;
   plan?: "starter" | "professional" | "enterprise";
+  role?: "user" | "admin";
+  isAdmin?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
-  signup: (username: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<User | null>;
+  signup: (username: string, password: string) => Promise<User | null>;
   logout: () => Promise<void>;
   updateProfile: (username: string) => Promise<{ ok: boolean; error?: string }>;
   updateTokens: (tokens: number) => void;
@@ -59,14 +61,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        return false;
+        return null;
       }
 
       const data = await response.json();
       setUser(data);
-      return true;
+      return data;
     } catch {
-      return false;
+      return null;
     }
   };
 
@@ -80,14 +82,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        return false;
+        return null;
       }
 
       const registered = await response.json();
-      const loginOk = await login(registered.username, password);
-      return loginOk;
+      return await login(registered.username, password);
     } catch {
-      return false;
+      return null;
     }
   };
 

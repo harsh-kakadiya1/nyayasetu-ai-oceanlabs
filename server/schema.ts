@@ -6,6 +6,7 @@ export const insertUserSchema = z.object({
   password: z.string(),
   tokens: z.number().int().min(0).optional(),
   plan: z.enum(["starter", "professional", "enterprise"]).optional(),
+  role: z.enum(["user", "admin"]).optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

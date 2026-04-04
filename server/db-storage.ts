@@ -44,7 +44,8 @@ async function ensureTables() {
           username TEXT UNIQUE NOT NULL,
           password TEXT NOT NULL,
           tokens INTEGER NOT NULL DEFAULT 3,
-          plan TEXT NOT NULL DEFAULT 'starter'
+          plan TEXT NOT NULL DEFAULT 'starter',
+          role TEXT NOT NULL DEFAULT 'user'
         )
       `);
 
@@ -56,6 +57,11 @@ async function ensureTables() {
       await db.query(`
         ALTER TABLE users
         ADD COLUMN IF NOT EXISTS plan TEXT NOT NULL DEFAULT 'starter'
+      `);
+
+      await db.query(`
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user'
       `);
 
       await db.query(`
@@ -124,9 +130,44 @@ export class DbStorage {
     }
 
     const result = await getPool().query<User>(
-      `INSERT INTO users (id, username, password, tokens, plan) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, password, tokens, plan`,
-      [id, normalizedUsername, insertUser.password, insertUser.tokens ?? 3, insertUser.plan ?? "starter"],
+      `INSERT INTO users (id, username, password, tokens, plan, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, username, password, tokens, plan, role`,
+      [id, normalizedUsername, insertUser.password, insertUser.tokens ?? 3, insertUser.plan ?? "starter", insertUser.role ?? "user"],
     );
+    return result.rows[0];
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    await ensureTables();
+    const result = await getPool().query<User>(
+      `SELECT id, username, password, tokens, plan, role FROM users ORDER BY username ASC`,
+    );
+    return result.rows;
+  }
+
+  async adminUpdateUser(
+    userId: string,
+    updates: { plan?: "starter" | "professional" | "enterprise"; tokens?: number },
+  ): Promise<User | undefined> {
+    await ensureTables();
+
+    const currentUser = await this.getUser(userId);
+    if (!currentUser) {
+      return undefined;
+    }
+
+    const nextPlan = updates.plan ?? currentUser.plan;
+    const nextTokens = updates.tokens ?? currentUser.tokens;
+
+    const result = await getPool().query<User>(
+      `
+      UPDATE users
+      SET plan = $2, tokens = $3
+      WHERE id = $1
+      RETURNING id, username, password, tokens, plan, role
+      `,
+      [userId, nextPlan, nextTokens],
+    );
+
     return result.rows[0];
   }
 
@@ -145,7 +186,7 @@ export class DbStorage {
         UPDATE users
         SET username = $2
         WHERE id = $1
-        RETURNING id, username, password, tokens, plan
+        RETURNING id, username, password, tokens, plan, role
         `,
         [userId, normalizedUsername],
       );
@@ -162,7 +203,7 @@ export class DbStorage {
     await ensureTables();
     const normalizedUsername = normalizeEmailIdentifier(username);
     const result = await getPool().query<User>(
-      `SELECT id, username, password, tokens, plan FROM users`,
+      `SELECT id, username, password, tokens, plan, role FROM users`,
     );
 
     return result.rows.find((user) => normalizeEmailIdentifier(user.username) === normalizedUsername);
@@ -171,7 +212,7 @@ export class DbStorage {
   async getUser(id: string): Promise<User | undefined> {
     await ensureTables();
     const result = await getPool().query<User>(
-      `SELECT id, username, password, tokens, plan FROM users WHERE id = $1 LIMIT 1`,
+      `SELECT id, username, password, tokens, plan, role FROM users WHERE id = $1 LIMIT 1`,
       [id],
     );
     return result.rows[0];
@@ -184,7 +225,7 @@ export class DbStorage {
       UPDATE users
       SET plan = $2, tokens = $3
       WHERE id = $1
-      RETURNING id, username, password, tokens, plan
+      RETURNING id, username, password, tokens, plan, role
       `,
       [userId, plan, tokens],
     );

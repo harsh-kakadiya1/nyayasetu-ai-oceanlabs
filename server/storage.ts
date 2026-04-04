@@ -6,6 +6,8 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getAllUsers(): Promise<User[]>;
+  adminUpdateUser(userId: string, updates: { plan?: "starter" | "professional" | "enterprise"; tokens?: number }): Promise<User | undefined>;
   updateUsername(userId: string, username: string): Promise<User | undefined>;
   updateUserPlan(userId: string, plan: "starter" | "professional" | "enterprise", tokens: number): Promise<User | undefined>;
   consumeUserToken(userId: string): Promise<number | null>;
@@ -57,9 +59,31 @@ export class MemStorage implements IStorage {
       id,
       tokens: insertUser.tokens ?? 3,
       plan: insertUser.plan ?? "starter",
+      role: insertUser.role ?? "user",
     };
     this.users.set(id, user);
     return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values()).sort((a, b) => a.username.localeCompare(b.username));
+  }
+
+  async adminUpdateUser(
+    userId: string,
+    updates: { plan?: "starter" | "professional" | "enterprise"; tokens?: number },
+  ): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+
+    const updatedUser: User = {
+      ...user,
+      plan: updates.plan ?? user.plan,
+      tokens: updates.tokens ?? user.tokens,
+    };
+
+    this.users.set(userId, updatedUser);
+    return updatedUser;
   }
 
   async updateUsername(userId: string, username: string): Promise<User | undefined> {

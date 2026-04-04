@@ -58,17 +58,17 @@ export default function Login() {
     }
 
     setIsSubmitting(true);
-    const ok = isSignupMode
+    const loggedInUser = isSignupMode
       ? await signup(username.trim(), password)
       : await login(username.trim(), password);
     setIsSubmitting(false);
 
-    if (ok) {
+    if (loggedInUser) {
       toast({
         title: isSignupMode ? "Account created" : "Welcome back",
         description: isSignupMode ? "Welcome to Nyayasetu AI." : "You are now logged in.",
       });
-      setLocation("/dashboard");
+      setLocation(loggedInUser.isAdmin ? "/admin" : "/dashboard");
     } else {
       toast({
         title: isSignupMode ? "Signup failed" : "Login failed",
