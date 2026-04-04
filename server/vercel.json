@@ -4,5 +4,11 @@
     "api/[...all].ts": {
       "maxDuration": 60
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/[...all].ts"
+    }
+  ]
 }
