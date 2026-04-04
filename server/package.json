@@ -27,7 +27,6 @@
     "pdf2json": "^4.0.2",
     "pdfjs-dist": "^5.4.149",
     "pg": "^8.16.3",
-    "razorpay": "^2.9.6",
     "ws": "^8.18.0",
     "zod": "^3.24.2",
     "zod-validation-error": "^3.4.0"

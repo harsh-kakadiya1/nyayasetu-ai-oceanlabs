@@ -20,7 +20,6 @@ interface AuthContextType {
   updateTokens: (tokens: number) => void;
   activatePlan: (
     plan: "starter" | "professional" | "enterprise",
-    options?: { paymentConfirmed?: boolean },
   ) => Promise<{ ok: boolean; error?: string; code?: string }>;
   checkAuth: () => Promise<void>;
   googleLogin: (intent?: "login" | "signup") => void;
@@ -146,14 +145,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const activatePlan = async (
     plan: "starter" | "professional" | "enterprise",
-    options?: { paymentConfirmed?: boolean },
   ) => {
     try {
       const response = await fetch(API_ENDPOINTS.subscription.activate, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ plan, paymentConfirmed: options?.paymentConfirmed ?? false }),
+        body: JSON.stringify({ plan }),
       });
 
       if (!response.ok) {

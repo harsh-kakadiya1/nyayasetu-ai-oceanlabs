@@ -32,62 +32,11 @@ import {
 import HeroSection from "@/components/hero-section";
 import StatsCounter from "@/components/stats-counter";
 
-type RazorpayOrderResponse = {
-  keyId: string;
-  amount: number;
-  currency: string;
-  orderId: string;
-  plan: "professional" | "enterprise";
-};
-
-type RazorpaySuccessPayload = {
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
-  razorpay_signature: string;
-};
-
-declare global {
-  interface Window {
-    Razorpay?: new (options: Record<string, unknown>) => {
-      open: () => void;
-    };
-  }
-}
-
-const RAZORPAY_SCRIPT_URL = "https://checkout.razorpay.com/v1/checkout.js";
-
-let razorpayScriptLoader: Promise<boolean> | null = null;
-
-function loadRazorpayScript(): Promise<boolean> {
-  if (typeof window === "undefined") {
-    return Promise.resolve(false);
-  }
-
-  if (window.Razorpay) {
-    return Promise.resolve(true);
-  }
-
-  if (!razorpayScriptLoader) {
-    razorpayScriptLoader = new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = RAZORPAY_SCRIPT_URL;
-      script.async = true;
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  }
-
-  return razorpayScriptLoader;
-}
-
 export default function Landing() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [showDisclaimer, setShowDisclaimer] = useState(false);
-  const [selectedPaidPlan, setSelectedPaidPlan] = useState<"professional" | "enterprise" | null>(null);
-  const [activatingPaidPlan, setActivatingPaidPlan] = useState(false);
   const { user, checkAuth } = useAuth();
 
   const quickStats = [
@@ -220,19 +169,11 @@ export default function Landing() {
       return;
     }
 
-    if (plan !== "starter") {
-      setSelectedPaidPlan(plan);
-      setTimeout(() => {
-        document.getElementById("payment")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 20);
-      return;
-    }
-
     const result = await fetch(API_ENDPOINTS.subscription.activate, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ plan, paymentConfirmed: true }),
+      body: JSON.stringify({ plan }),
     });
 
     if (!result.ok) {
@@ -252,122 +193,6 @@ export default function Landing() {
       description: `Your ${plan} plan is now active`,
     });
     setLocation("/dashboard");
-  };
-
-  const handleActivatePaidPlan = async () => {
-    if (!selectedPaidPlan) {
-      toast({
-        title: "Select a paid plan",
-        description: "Choose Professional or Enterprise from pricing first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!user) {
-      setLocation("/login");
-      return;
-    }
-
-    try {
-      setActivatingPaidPlan(true);
-
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded || !window.Razorpay) {
-        toast({
-          title: "Payment gateway unavailable",
-          description: "Unable to load Razorpay checkout. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const orderResponse = await fetch(API_ENDPOINTS.payments.createRazorpayOrder, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ plan: selectedPaidPlan }),
-      });
-
-      if (!orderResponse.ok) {
-        const failed = await orderResponse.json().catch(() => ({ error: "Please try again" }));
-        toast({
-          title: "Payment initialization failed",
-          description: failed.error || "Please try again",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const order = (await orderResponse.json()) as RazorpayOrderResponse;
-
-      const paymentResult = await new Promise<RazorpaySuccessPayload | null>((resolve) => {
-        const checkout = new window.Razorpay!({
-          key: order.keyId,
-          amount: order.amount,
-          currency: order.currency,
-          name: "NyayaSetu",
-          description: `${order.plan} plan subscription`,
-          order_id: order.orderId,
-          prefill: {
-            email: user?.username,
-          },
-          notes: {
-            plan: order.plan,
-            userId: user?.id,
-          },
-          theme: {
-            color: "#1f565f",
-          },
-          handler: (response: RazorpaySuccessPayload) => {
-            resolve(response);
-          },
-          modal: {
-            ondismiss: () => resolve(null),
-          },
-        });
-
-        checkout.open();
-      });
-
-      if (!paymentResult) {
-        toast({
-          title: "Payment cancelled",
-          description: "You cancelled the payment flow.",
-        });
-        return;
-      }
-
-      const verifyResponse = await fetch(API_ENDPOINTS.payments.verifyRazorpayPayment, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          plan: selectedPaidPlan,
-          ...paymentResult,
-        }),
-      });
-
-      if (!verifyResponse.ok) {
-        const failed = await verifyResponse.json().catch(() => ({ error: "Please try again" }));
-        toast({
-          title: "Payment verification failed",
-          description: failed.error || "Please try again",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      await checkAuth();
-
-      toast({
-        title: "Payment successful",
-        description: `${selectedPaidPlan} plan activated successfully.`,
-      });
-      setLocation("/dashboard");
-    } finally {
-      setActivatingPaidPlan(false);
-    }
   };
 
   return (
@@ -485,32 +310,6 @@ export default function Landing() {
             ))}
           </div>
         </section>
-
-        <section id="payment" className="mx-auto mb-16 max-w-4xl scroll-mt-24 rounded-3xl border border-[#1f565f]/20 bg-white/85 p-6 sm:p-8">
-          <div className="mb-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#577f86]">Payment</p>
-            <h3 className="font-display mt-2 text-2xl font-semibold text-[#1f383c]">Activate Paid Plan</h3>
-            <p className="mt-2 text-sm text-[#567a80]">
-              Paid plans cannot be activated directly from pricing. Complete payment here to activate your subscription.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-[#2d575e]/15 bg-[#f7fbf9] p-4">
-            <p className="text-sm text-[#315b61]">
-              Selected plan: <span className="font-semibold text-[#1f565f]">{selectedPaidPlan ? selectedPaidPlan : "None selected"}</span>
-            </p>
-            <p className="mt-1 text-xs text-[#6d8d92]">Complete Razorpay checkout to activate this plan.</p>
-          </div>
-
-          <Button
-            onClick={handleActivatePaidPlan}
-            disabled={!selectedPaidPlan || activatingPaidPlan}
-            className="mt-4 w-full rounded-full bg-[#1f565f] text-white hover:bg-[#173f46] disabled:opacity-60"
-          >
-            {activatingPaidPlan ? "Processing payment..." : "Proceed to payment and activate"}
-          </Button>
-        </section>
-
 
         <section id="faqs" className="mx-auto mb-16 max-w-6xl scroll-mt-24">
           <div className="mb-7 text-center">
