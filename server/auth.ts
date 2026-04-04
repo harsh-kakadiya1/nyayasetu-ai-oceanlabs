@@ -19,7 +19,10 @@ async function getSessionStore(): Promise<session.Store> {
   }
 
   if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL is required. Supabase session store is mandatory.");
+    console.warn("[AUTH] DATABASE_URL missing, falling back to in-memory session store");
+    const memoryStore = new session.MemoryStore();
+    cachedSessionStore = memoryStore;
+    return memoryStore;
   }
 
   const sessionPool = new pg.Pool({
