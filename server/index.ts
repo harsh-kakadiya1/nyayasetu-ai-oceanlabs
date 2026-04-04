@@ -6,29 +6,44 @@ import { setupVite, log } from "./vite.js";
 
 const app = express();
 
+function normalizeOrigin(value?: string): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  try {
+    return new URL(trimmed).origin.toLowerCase();
+  } catch {
+    return trimmed.replace(/\/+$/, "").toLowerCase();
+  }
+}
+
 const defaultAllowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:5173",
-];
+].map((origin) => normalizeOrigin(origin) as string);
 
 const envAllowedOrigins = [
   process.env.FRONTEND_URL,
   process.env.FRONTEND_PREVIEW_URL,
   ...(process.env.ALLOWED_ORIGINS || "").split(",").map((origin) => origin.trim()),
 ]
-  .filter(Boolean) as string[];
+  .map((origin) => normalizeOrigin(origin))
+  .filter((origin): origin is string => !!origin);
 
 const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...envAllowedOrigins]));
 
 // CORS configuration for browser clients (frontend runs on a separate domain).
 app.use((req, res, next) => {
-  const origin = req.headers.origin as string | undefined;
-  const isLocalhost = !!origin && origin.startsWith("http://localhost");
-  const isAllowedOrigin = !!origin && (allowedOrigins.includes(origin) || (!process.env.VERCEL && isLocalhost));
+  const requestOrigin = req.headers.origin as string | undefined;
+  const normalizedOrigin = normalizeOrigin(requestOrigin);
+  const isLocalhost = !!normalizedOrigin && normalizedOrigin.startsWith("http://localhost");
+  const isAllowedOrigin = !!normalizedOrigin && (allowedOrigins.includes(normalizedOrigin) || (!process.env.VERCEL && isLocalhost));
 
-  if (origin && isAllowedOrigin) {
-    res.header("Access-Control-Allow-Origin", origin);
+  if (requestOrigin && isAllowedOrigin) {
+    res.header("Access-Control-Allow-Origin", requestOrigin);
     res.header("Vary", "Origin");
     res.header("Access-Control-Allow-Credentials", "true");
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
@@ -36,8 +51,8 @@ app.use((req, res, next) => {
       "Access-Control-Allow-Headers",
       "Origin, X-Requested-With, Content-Type, Accept, Authorization, Accept-Language",
     );
-  } else if (origin) {
-    console.log(`[CORS] Blocked origin: ${origin}`);
+  } else if (requestOrigin) {
+    console.log(`[CORS] Blocked origin: ${requestOrigin}`);
   }
 
   if (req.method === "OPTIONS") {
