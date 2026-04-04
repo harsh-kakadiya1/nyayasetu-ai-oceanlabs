@@ -26,7 +26,22 @@ export default function Navbar() {
     setProfileName(user?.username || "");
   }, [user?.username]);
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const closeMobileMenu = () => {
+    setIsMenuOpen(false);
+    setIsEditingProfile(false);
+    setIsSettingsOpen(false);
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen((prev) => {
+      const next = !prev;
+      if (!next) {
+        setIsEditingProfile(false);
+        setIsSettingsOpen(false);
+      }
+      return next;
+    });
+  };
 
   const scrollToLandingSection = (sectionId: "pricing" | "faqs") => {
     const smoothScroll = () => {
@@ -39,7 +54,7 @@ export default function Navbar() {
       return true;
     };
 
-    setIsMenuOpen(false);
+    closeMobileMenu();
 
     if (location === "/") {
       smoothScroll();
@@ -339,6 +354,20 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
         <div className="flex flex-shrink-0 items-center space-x-1.5 md:hidden">
+            {user && (
+              <button
+                type="button"
+                onClick={toggleMenu}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-[#2f5960]/20 bg-white/80 transition-colors hover:border-[#2f5960]/35 hover:bg-[#eef8f5]"
+                aria-label="Open profile menu"
+              >
+                <Avatar className="h-7 w-7">
+                  <AvatarFallback className="bg-[#e24f3d] text-[10px] font-semibold text-white">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            )}
             <div className="flex-shrink-0">
               <LanguageSelector />
             </div>
@@ -357,17 +386,107 @@ export default function Navbar() {
         {isMenuOpen && (
         <div className="border-t border-[#2f5960]/20 bg-[#f9f5eb] md:hidden">
         <div className="space-y-2 px-3 py-4">
-              <Link href="/" onClick={() => setIsMenuOpen(false)}>
+              <Link href="/" onClick={closeMobileMenu}>
           <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
                   {t("navigation.home", { defaultValue: "Home" })}
                 </div>
               </Link>
               {user ? (
-                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                <>
+                <Link href="/dashboard" onClick={closeMobileMenu}>
             <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
                     {t("navigation.dashboard")}
                   </div>
                 </Link>
+
+                <div className="rounded-xl border border-[#2f5960]/18 bg-white/75 p-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-[#e24f3d] text-xs font-semibold text-white">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[#1f3c41]">{user.username}</p>
+                      <p className="mt-0.5 text-xs text-[#61868d]">{currentPlanLabel} · {t("navbar.freeTokens")}: {user.tokens}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingProfile((prev) => !prev)}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-[#476d74] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
+                    >
+                      <UserCircle2 className="h-4 w-4" />
+                      {t("navbar.editProfile")}
+                    </button>
+
+                    {isEditingProfile && (
+                      <div className="space-y-2 rounded-lg border border-[#2f5960]/15 bg-white p-2">
+                        <Input
+                          value={profileName}
+                          onChange={(e) => setProfileName(e.target.value)}
+                          className="h-9 border-[#2f5960]/20 bg-white"
+                          placeholder={t("navbar.enterUsername")}
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="h-9 w-full bg-[#1f565f] text-white hover:bg-[#173f46]"
+                          onClick={handleProfileSave}
+                        >
+                          {t("navbar.saveProfile")}
+                        </Button>
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => scrollToLandingSection("pricing")}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-[#476d74] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
+                    >
+                      <Crown className="h-4 w-4" />
+                      {t("navbar.upgradePlan")}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsSettingsOpen((prev) => !prev)}
+                      className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium text-[#476d74] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        {t("navigation.settings")}
+                      </span>
+                      <ChevronRight className={`h-4 w-4 transition-transform ${isSettingsOpen ? "rotate-90" : ""}`} />
+                    </button>
+
+                    {isSettingsOpen && (
+                      <div className="space-y-2 rounded-lg border border-[#2f5960]/15 bg-white p-2 text-sm text-[#35565c]">
+                        <div className="rounded-md border border-[#2f5960]/15 bg-[#f7fbf9] px-3 py-2">
+                          <p className="text-[11px] uppercase tracking-[0.08em] text-[#6b8a90]">Current plan</p>
+                          <p className="mt-0.5 font-semibold text-[#1f3c41]">{currentPlanLabel}</p>
+                        </div>
+                        <div className="rounded-md border border-[#2f5960]/15 bg-[#f7fbf9] px-3 py-2">
+                          <p className="text-[11px] uppercase tracking-[0.08em] text-[#6b8a90]">{t("navbar.freeTokens")}</p>
+                          <p className="mt-0.5 font-semibold text-[#1f3c41]">{user.tokens}</p>
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="destructive"
+                          className="h-9 w-full"
+                          onClick={clearHistory}
+                          disabled={isClearingHistory}
+                        >
+                          {isClearingHistory ? t("navbar.removing") : t("navbar.removeAllHistory")}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                </>
               ) : (
                 <>
                   <button
@@ -392,7 +511,7 @@ export default function Navbar() {
                   <button
                     onClick={async () => {
                       await logout();
-                      setIsMenuOpen(false);
+                      closeMobileMenu();
                     }}
                     className="block w-full rounded-lg px-4 py-2 text-left text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
                   >
@@ -400,7 +519,7 @@ export default function Navbar() {
                   </button>
                 </>
               ) : (
-                <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                <Link href="/login" onClick={closeMobileMenu}>
                   <div className="block rounded-lg bg-[#1f565f] px-4 py-2 text-base font-semibold text-white transition-colors hover:bg-[#173f46]">
                     {t("navigation.getStarted")}
                   </div>

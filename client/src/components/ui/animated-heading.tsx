@@ -21,13 +21,13 @@ function AnimatedHeading() {
 
   return (
     <div>
-      <h1 className="font-display mx-auto max-w-4xl text-5xl font-semibold leading-[0.98] tracking-tight text-[#1b3338] sm:text-6xl lg:text-7xl">
+      <h1 className="font-display mx-auto max-w-4xl text-4xl font-semibold leading-[1.02] tracking-tight text-[#1b3338] sm:text-6xl sm:leading-[0.98] lg:text-7xl">
         <span className="block">Nyayasetu.ai</span>
-        <span className="relative mt-2 block h-[1.2em] overflow-hidden text-[#a24e2f]">
+        <span className="relative mt-2 block min-h-[2.4em] overflow-hidden text-[#a24e2f] sm:min-h-[1.2em]">
           {titles.map((title, index) => (
             <motion.span
               key={index}
-              className="absolute inset-x-0 block"
+              className="absolute inset-x-0 block leading-[1.05]"
               initial={{ opacity: 0, y: -80 }}
               transition={{ type: "spring", stiffness: 55, damping: 14 }}
               animate={
