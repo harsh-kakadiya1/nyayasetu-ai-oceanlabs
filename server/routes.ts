@@ -183,11 +183,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(["/api/auth/me", "/api/auth-me"], (req, res) => {
     if (req.isAuthenticated()) {
       return res.json({
-        id: req.user.id,
-        username: req.user.username,
-        tokens: req.user.tokens,
-        plan: req.user.plan,
-        role: req.user.role,
+        id: req.user!.id,
+        username: req.user!.username,
+        tokens: req.user!.tokens,
+        plan: req.user!.plan,
+        role: req.user!.role,
         isAdmin: userIsAdmin(req.user),
       });
     }
@@ -203,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Username must be at least 3 characters" });
       }
 
-      const updatedUser = await storage.updateUsername(req.user.id, username);
+      const updatedUser = await storage.updateUsername(req.user!.id, username);
 
       if (!updatedUser) {
         return res.status(404).json({ error: "User not found" });
@@ -303,7 +303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      const remainingTokens = await storage.consumeUserToken(req.user.id);
+      const remainingTokens = await storage.consumeUserToken(req.user!.id);
       if (remainingTokens === null) {
         return res.status(402).json({
           error: "No tokens remaining. Please subscribe to continue analysis.",
@@ -335,7 +335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Create a unique filename for storage
           const storageFilename = `${Date.now()}_${req.file.originalname}`;
           encryptedStoragePath = await supabaseService.uploadEncryptedDocument(
-            req.user.id,
+            req.user!.id,
             documentId,
             encryptedContent,
             storageFilename,
@@ -354,7 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create document record with encrypted metadata
       const documentData = insertDocumentSchema.parse({
-        userId: req.user.id,
+        userId: req.user!.id,
         filename: req.file.originalname,
         content: parsedDoc.content, // Keep original for analysis, encryption is separate
         documentType: documentType || "auto-detect",
@@ -373,7 +373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Delete the created document since validation failed
         await storage.deleteDocument(document.id);
         // Refund token since analysis won't proceed
-        await storage.addUserTokens(req.user.id, 1);
+        await storage.addUserTokens(req.user!.id, 1);
         
         return res.status(400).json({ 
           error: "Invalid document",
@@ -400,7 +400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create analysis record
       const analysisData = insertAnalysisSchema.parse({
-        userId: req.user.id,
+        userId: req.user!.id,
         documentId: document.id,
         summary: analysis.summary.summary,
         riskLevel: analysis.riskLevel,
@@ -431,7 +431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       if (tokenConsumed) {
-        await storage.addUserTokens(req.user.id, 1);
+        await storage.addUserTokens(req.user!.id, 1);
       }
       console.error("Document upload error:", error);
       res.status(500).json({ 
@@ -451,7 +451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Document content is required" });
       }
 
-      const remainingTokens = await storage.consumeUserToken(req.user.id);
+      const remainingTokens = await storage.consumeUserToken(req.user!.id);
       if (remainingTokens === null) {
         return res.status(402).json({
           error: "No tokens remaining. Please subscribe to continue analysis.",
@@ -466,7 +466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create document record
       const documentData = insertDocumentSchema.parse({
-        userId: req.user.id,
+        userId: req.user!.id,
         filename: null,
         content: parsedDoc.content,
         documentType: documentType || "auto-detect",
@@ -483,7 +483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Delete the created document since validation failed
         await storage.deleteDocument(document.id);
         // Refund token since analysis won't proceed
-        await storage.addUserTokens(req.user.id, 1);
+        await storage.addUserTokens(req.user!.id, 1);
         
         return res.status(400).json({ 
           error: "Invalid document",
@@ -510,7 +510,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create analysis record
       const analysisData = insertAnalysisSchema.parse({
-        userId: req.user.id,
+        userId: req.user!.id,
         documentId: document.id,
         summary: analysis.summary.summary,
         riskLevel: analysis.riskLevel,
@@ -537,7 +537,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       if (tokenConsumed) {
-        await storage.addUserTokens(req.user.id, 1);
+        await storage.addUserTokens(req.user!.id, 1);
       }
       console.error("Text analysis error:", error);
       res.status(500).json({ 
@@ -563,7 +563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Analysis not found" });
       }
 
-      if (analysis.userId !== req.user.id) {
+      if (analysis.userId !== req.user!.id) {
         return res.status(403).json({ error: "Access denied" });
       }
 
@@ -596,7 +596,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.log(`[MESSAGES] Found analysis: ${id}`);
 
-      if (analysis.userId !== req.user.id) {
+      if (analysis.userId !== req.user!.id) {
         return res.status(403).json({ error: "Access denied" });
       }
 
@@ -630,7 +630,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Analysis not found" });
       }
 
-      if (analysis.userId !== req.user.id) {
+      if (analysis.userId !== req.user!.id) {
         return res.status(403).json({ error: "Access denied" });
       }
 
@@ -648,7 +648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Save the Q&A
       const messageData = insertChatMessageSchema.parse({
-        userId: req.user.id,
+        userId: req.user!.id,
         analysisId: id,
         question,
         answer,
@@ -669,7 +669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/history", requireAuth, async (req, res) => {
     try {
       console.log(`[HISTORY] Fetching history for user: ${req.user?.id}`);
-      const analyses = await storage.getUserAnalyses(req.user.id);
+      const analyses = await storage.getUserAnalyses(req.user!.id);
       console.log(`[HISTORY] Found ${analyses?.length || 0} analyses for user ${req.user?.id}`);
       res.json(analyses || []);
     } catch (error) {
@@ -680,7 +680,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/history", requireAuth, async (req, res) => {
     try {
-      const removedCount = await storage.clearUserHistory(req.user.id);
+      const removedCount = await storage.clearUserHistory(req.user!.id);
       res.json({ success: true, removedCount });
     } catch (error) {
       console.error("[HISTORY] Clear history error:", error);
@@ -697,11 +697,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "History item not found" });
       }
 
-      if (analysis.userId !== req.user.id) {
+      if (analysis.userId !== req.user!.id) {
         return res.status(403).json({ error: "Access denied" });
       }
 
-      const deleted = await storage.deleteUserAnalysis(req.user.id, analysisId);
+      const deleted = await storage.deleteUserAnalysis(req.user!.id, analysisId);
       if (!deleted) {
         return res.status(500).json({ error: "Failed to delete history item" });
       }
@@ -724,7 +724,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify user owns this document
-      if (document.userId !== req.user.id) {
+      if (document.userId !== req.user!.id) {
         return res.status(403).json({ error: "Access denied" });
       }
 
@@ -753,7 +753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify user owns this document
-      if (document.userId !== req.user.id) {
+      if (document.userId !== req.user!.id) {
         return res.status(403).json({ error: "Access denied" });
       }
 
@@ -786,7 +786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // List user's encrypted documents
   app.get(["/api/documents", "/api/documents-list"], requireAuth, async (req, res) => {
     try {
-      const documents = await storage.getUserDocuments(req.user.id);
+      const documents = await storage.getUserDocuments(req.user!.id);
 
       const documentList = documents.map((doc) => ({
         id: doc.id,
@@ -892,7 +892,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "Invalid payment amount configuration" });
       }
 
-      const compactUserId = String(req.user.id || "user").replace(/-/g, "").slice(0, 8);
+      const compactUserId = String(req.user!.id || "user").replace(/-/g, "").slice(0, 8);
       const receipt = `rcpt_${Date.now()}_${compactUserId}`;
 
       const order = await razorpay.orders.create({
@@ -900,9 +900,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currency: RAZORPAY_CURRENCY,
         receipt,
         notes: {
-          userId: req.user.id,
+          userId: req.user!.id,
           plan,
-          username: req.user.username,
+          username: req.user!.username,
         },
       });
 
@@ -949,7 +949,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updated = await storage.updateUserPlan(
-        req.user.id,
+        req.user!.id,
         plan as "professional" | "enterprise",
         PLAN_TOKEN_DEFAULTS[plan as "professional" | "enterprise"],
       );
@@ -995,7 +995,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const updated = await storage.updateUserPlan(req.user.id, plan, PLAN_TOKEN_DEFAULTS[plan]);
+      const updated = await storage.updateUserPlan(req.user!.id, plan, PLAN_TOKEN_DEFAULTS[plan]);
 
       if (!updated) {
         return res.status(404).json({ error: "User not found" });

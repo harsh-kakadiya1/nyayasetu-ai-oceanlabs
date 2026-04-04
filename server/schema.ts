@@ -10,7 +10,14 @@ export const insertUserSchema = z.object({
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = InsertUser & { id: string };
+export type User = {
+  id: string;
+  username: string;
+  password: string;
+  tokens: number;
+  plan: "starter" | "professional" | "enterprise";
+  role: "user" | "admin";
+};
 
 // Document types
 export const insertDocumentSchema = z.object({

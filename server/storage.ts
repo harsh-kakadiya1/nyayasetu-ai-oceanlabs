@@ -16,6 +16,7 @@ export interface IStorage {
   createDocument(document: InsertDocument): Promise<Document>;
   getDocument(id: string): Promise<Document | undefined>;
   getUserDocuments(userId: string): Promise<Document[]>;
+  deleteDocument(id: string): Promise<boolean>;
   
   createAnalysis(analysis: InsertAnalysis): Promise<Analysis>;
   getAnalysis(id: string): Promise<Analysis | undefined>;
@@ -164,6 +165,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.documents.values()).filter(
       (doc) => doc.userId === userId,
     );
+  }
+
+  async deleteDocument(id: string): Promise<boolean> {
+    return this.documents.delete(id);
   }
 
   async createAnalysis(insertAnalysis: InsertAnalysis): Promise<Analysis> {

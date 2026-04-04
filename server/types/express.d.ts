@@ -1,12 +1,14 @@
+import type { User as AppUser } from "../schema.js";
+
 declare global {
   namespace Express {
-    interface User {
-      id: string;
-      username: string;
-      tokens: number;
-      plan?: "starter" | "professional" | "enterprise";
-      role?: "user" | "admin";
-      isAdmin?: boolean;
+    interface User extends AppUser {}
+
+    interface Request {
+      user: AppUser;
+      isAuthenticated(): this is Request & { user: AppUser };
     }
   }
 }
+
+export {};
