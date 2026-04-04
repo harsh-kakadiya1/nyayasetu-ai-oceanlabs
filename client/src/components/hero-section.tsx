@@ -1,10 +1,8 @@
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AnimatedHeading } from "@/components/ui/animated-heading";
 
 interface HeroSectionProps {
-  title: string;
-  highlight: string;
-  description: string;
   ctaText: string;
   subCtaText: string;
   badgeText: string;
@@ -12,9 +10,6 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({
-  title,
-  highlight,
-  description,
   ctaText,
   subCtaText,
   badgeText,
@@ -34,13 +29,7 @@ export default function HeroSection({
             <Sparkles className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: "3s" }} />
             {badgeText}
           </div>
-          <h1 className="font-display mx-auto max-w-4xl text-5xl font-semibold leading-[0.98] tracking-tight text-[#1b3338] sm:text-6xl lg:text-7xl">
-            {title}
-            <span className="mt-2 block text-[#a24e2f]">{highlight}</span>
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-[#355a60] sm:text-lg">
-            {description}
-          </p>
+          <AnimatedHeading />
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <Button
               onClick={onCtaClick}

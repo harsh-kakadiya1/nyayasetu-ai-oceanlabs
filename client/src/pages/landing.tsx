@@ -376,9 +376,6 @@ export default function Landing() {
 
       <main className="relative z-10 pb-16">
         <HeroSection
-          title={t("landing.hero.title")}
-          highlight={t("landing.hero.highlight")}
-          description={t("landing.hero.description")}
           ctaText={t("landing.hero.cta")}
           subCtaText={t("landing.hero.subCta")}
           badgeText={t("landing.hero.badge")}
