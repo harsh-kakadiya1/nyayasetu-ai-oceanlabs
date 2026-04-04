@@ -18,12 +18,16 @@ export const insertDocumentSchema = z.object({
   filename: z.string().nullable().optional(),
   content: z.string(),
   documentType: z.string().nullable().optional(),
+  encryptedStoragePath: z.string().nullable().optional(), // Path to encrypted file in Supabase
+  isEncrypted: z.boolean().optional().default(false),
 });
 
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type Document = InsertDocument & {
   id: string;
   uploadedAt: Date;
+  encryptedStoragePath?: string | null;
+  isEncrypted?: boolean;
 };
 
 // Analysis types

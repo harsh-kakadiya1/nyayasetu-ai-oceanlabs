@@ -71,6 +71,8 @@ async function ensureTables() {
           filename TEXT,
           content TEXT NOT NULL,
           document_type TEXT,
+          encrypted_storage_path TEXT,
+          is_encrypted BOOLEAN DEFAULT false,
           uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
       `);
@@ -101,6 +103,17 @@ async function ensureTables() {
           answer TEXT NOT NULL,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
+      `);
+
+      // Add new columns to existing documents table
+      await db.query(`
+        ALTER TABLE documents
+        ADD COLUMN IF NOT EXISTS encrypted_storage_path TEXT
+      `);
+
+      await db.query(`
+        ALTER TABLE documents
+        ADD COLUMN IF NOT EXISTS is_encrypted BOOLEAN DEFAULT false
       `);
     })();
   }
@@ -276,11 +289,27 @@ export class DbStorage {
     const id = randomUUID();
     const result = await getPool().query<Document>(
       `
-      INSERT INTO documents (id, user_id, filename, content, document_type)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, user_id as "userId", filename, content, document_type as "documentType", uploaded_at as "uploadedAt"
+      INSERT INTO documents (id, user_id, filename, content, document_type, encrypted_storage_path, is_encrypted)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING 
+        id, 
+        user_id as "userId", 
+        filename, 
+        content, 
+        document_type as "documentType", 
+        encrypted_storage_path as "encryptedStoragePath",
+        is_encrypted as "isEncrypted",
+        uploaded_at as "uploadedAt"
       `,
-      [id, insertDocument.userId ?? null, insertDocument.filename ?? null, insertDocument.content, insertDocument.documentType ?? null],
+      [
+        id, 
+        insertDocument.userId ?? null, 
+        insertDocument.filename ?? null, 
+        insertDocument.content, 
+        insertDocument.documentType ?? null,
+        insertDocument.encryptedStoragePath ?? null,
+        insertDocument.isEncrypted ?? false,
+      ],
     );
     return result.rows[0];
   }
@@ -289,7 +318,15 @@ export class DbStorage {
     await ensureTables();
     const result = await getPool().query<Document>(
       `
-      SELECT id, user_id as "userId", filename, content, document_type as "documentType", uploaded_at as "uploadedAt"
+      SELECT 
+        id, 
+        user_id as "userId", 
+        filename, 
+        content, 
+        document_type as "documentType",
+        encrypted_storage_path as "encryptedStoragePath",
+        is_encrypted as "isEncrypted",
+        uploaded_at as "uploadedAt"
       FROM documents
       WHERE id = $1
       LIMIT 1
@@ -303,7 +340,15 @@ export class DbStorage {
     await ensureTables();
     const result = await getPool().query<Document>(
       `
-      SELECT id, user_id as "userId", filename, content, document_type as "documentType", uploaded_at as "uploadedAt"
+      SELECT 
+        id, 
+        user_id as "userId", 
+        filename, 
+        content, 
+        document_type as "documentType",
+        encrypted_storage_path as "encryptedStoragePath",
+        is_encrypted as "isEncrypted",
+        uploaded_at as "uploadedAt"
       FROM documents
       WHERE user_id = $1
       ORDER BY uploaded_at DESC
@@ -311,6 +356,15 @@ export class DbStorage {
       [userId],
     );
     return result.rows;
+  }
+
+  async deleteDocument(id: string): Promise<boolean> {
+    await ensureTables();
+    const result = await getPool().query(
+      `DELETE FROM documents WHERE id = $1`,
+      [id],
+    );
+    return (result.rowCount || 0) > 0;
   }
 
   async createAnalysis(insertAnalysis: InsertAnalysis): Promise<Analysis> {

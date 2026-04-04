@@ -253,6 +253,101 @@ Rules:
   }
 }
 
+/**
+ * Validates whether the document is a legal document
+ * Returns { isLegal: boolean, reason?: string }
+ */
+export async function validateLegalDocument(
+  content: string,
+): Promise<{ isLegal: boolean; reason?: string; documentType?: string }> {
+  const model = "meta-llama/llama-4-scout-17b-16e-instruct";
+
+  const systemPrompt = `You are a document classification expert. Analyze the provided document and determine if it is a legal document.
+
+Legal documents include:
+- Contracts (employment, service, rental, purchase, etc.)
+- Agreements (NDAs, partnership, licensing, etc.)
+- Leases and rental agreements
+- Terms of Service & Privacy Policies
+- Loan agreements and financing documents
+- Will and trust documents
+- Mortgage and real estate documents
+- Service agreements
+- License agreements
+- Joint venture agreements
+- Settlement agreements
+- Confidentiality agreements
+- Other legally binding contracts
+
+Non-legal documents include:
+- Articles, blog posts, news
+- Marketing materials
+- Emails, messages
+- Social media content
+- Books, novels, stories
+- Resumes, CVs
+- Purchase orders (unless formal contracts)
+- General text documents
+
+Respond with JSON in this format:
+{
+  "isLegal": true/false,
+  "documentType": "type if legal, or null",
+  "confidence": 0-1,
+  "reason": "brief explanation"
+}`;
+
+  try {
+    console.log('[VALIDATION] Starting legal document validation...');
+    
+    const chatCompletion = await groq.chat.completions.create({
+      model: model,
+      messages: [
+        { 
+          role: "system", 
+          content: systemPrompt 
+        },
+        { 
+          role: "user", 
+          content: `Document to validate:\n\n${content.substring(0, 3000)}` // First 3000 chars for validation
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.3,
+    });
+
+    const responseText = chatCompletion.choices[0]?.message?.content;
+    
+    if (!responseText) {
+      throw new Error("Empty response from validation API");
+    }
+
+    const response = JSON.parse(responseText) as {
+      isLegal: boolean;
+      documentType?: string;
+      confidence?: number;
+      reason?: string;
+    };
+
+    console.log(`[VALIDATION] Result: ${response.isLegal ? 'LEGAL' : 'NOT LEGAL'}`, {
+      documentType: response.documentType,
+      confidence: response.confidence,
+      reason: response.reason,
+    });
+
+    return {
+      isLegal: response.isLegal,
+      reason: response.reason,
+      documentType: response.documentType,
+    };
+  } catch (error) {
+    console.error("[VALIDATION] Legal document validation error:", error);
+    throw new Error(
+      `Failed to validate legal document: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
 export async function analyzeDocument(
   content: string,
   documentType?: string,

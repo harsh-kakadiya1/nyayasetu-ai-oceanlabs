@@ -2,8 +2,11 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
 import { insertDocumentSchema, insertAnalysisSchema, insertChatMessageSchema } from "./schema.js";
-import { analyzeDocument, answerQuestion } from "./services/groq.js";
+import { analyzeDocument, answerQuestion, validateLegalDocument } from "./services/groq.js";
 import { parseTextContent, parseUploadedDocument } from "./services/documentParser.js";
+import { EncryptionService } from "./services/encryption.js";
+import { getSupabaseStorageService, isSupabaseConfigured } from "./services/supabase.js";
+import { DocumentRetrievalService } from "./services/documentRetrieval.js";
 import multer from "multer";
 import path from "path";
 import passport from "passport";
@@ -316,21 +319,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse the uploaded document
       const parsedDoc = await parseUploadedDocument(req.file);
       
-      // Create document record
+      // Encrypt the document content
+      const { encrypted: encryptedContent, metadata: encryptionMetadata } = EncryptionService.encryptDocument(parsedDoc.content);
+      
+      // Generate unique document ID before creating document record
+      const documentId = crypto.randomUUID();
+      
+      // Upload encrypted document to Supabase (if configured)
+      let encryptedStoragePath: string | null = null;
+      if (isSupabaseConfigured()) {
+        try {
+          const supabaseService = getSupabaseStorageService();
+          await supabaseService.ensureBucketExists();
+          
+          // Create a unique filename for storage
+          const storageFilename = `${Date.now()}_${req.file.originalname}`;
+          encryptedStoragePath = await supabaseService.uploadEncryptedDocument(
+            req.user.id,
+            documentId,
+            encryptedContent,
+            storageFilename,
+          );
+          if (encryptedStoragePath) {
+            console.log(`[SUPABASE] Document uploaded: ${encryptedStoragePath}`);
+          }
+        } catch (supabaseError) {
+          console.error("[SUPABASE] Upload failed:", supabaseError);
+          // Continue with database storage but log the error
+          // The document analysis will still work with the database-stored content
+        }
+      } else {
+        console.log('[DOCUMENTS] Supabase not configured, storing encrypted document in database only');
+      }
+
+      // Create document record with encrypted metadata
       const documentData = insertDocumentSchema.parse({
         userId: req.user.id,
         filename: req.file.originalname,
-        content: parsedDoc.content,
+        content: parsedDoc.content, // Keep original for analysis, encryption is separate
         documentType: documentType || "auto-detect",
+        encryptedStoragePath: encryptedStoragePath || null,
+        isEncrypted: true,
       });
 
       const document = await storage.createDocument(documentData);
+
+      // Validate if document is a legal document before analysis
+      console.log('[VALIDATION] Validating document as legal document...');
+      const validation = await validateLegalDocument(parsedDoc.content);
+      
+      if (!validation.isLegal) {
+        console.warn('[VALIDATION] Document failed legal validation:', validation.reason);
+        // Delete the created document since validation failed
+        await storage.deleteDocument(document.id);
+        // Refund token since analysis won't proceed
+        await storage.addUserTokens(req.user.id, 1);
+        
+        return res.status(400).json({ 
+          error: "Invalid document",
+          message: "This document is not recognized as a legal document. Only legal documents (contracts, agreements, etc.) can be analyzed.",
+          details: validation.reason,
+          code: "NOT_A_LEGAL_DOCUMENT"
+        });
+      }
+
+      console.log('[VALIDATION] Document validated as legal document:', {
+        documentType: validation.documentType,
+        reason: validation.reason
+      });
 
       // Analyze document with Groq
       const startTime = Date.now();
       const analysis = await analyzeDocument(
         parsedDoc.content,
-        documentType,
+        validation.documentType || documentType,
         preferredLanguage as string,
         summaryLength,
       );
@@ -353,7 +415,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const savedAnalysis = await storage.createAnalysis(analysisData);
 
       res.json({
-        document,
+        document: {
+          ...document,
+          isEncrypted: true,
+          encryptedStoragePath: encryptedStoragePath || undefined,
+        },
         analysis: {
           ...savedAnalysis,
           summary: analysis.summary,
@@ -408,11 +474,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const document = await storage.createDocument(documentData);
 
+      // Validate if document is a legal document before analysis
+      console.log('[VALIDATION] Validating text document as legal document...');
+      const validation = await validateLegalDocument(parsedDoc.content);
+      
+      if (!validation.isLegal) {
+        console.warn('[VALIDATION] Text document failed legal validation:', validation.reason);
+        // Delete the created document since validation failed
+        await storage.deleteDocument(document.id);
+        // Refund token since analysis won't proceed
+        await storage.addUserTokens(req.user.id, 1);
+        
+        return res.status(400).json({ 
+          error: "Invalid document",
+          message: "This document is not recognized as a legal document. Only legal documents (contracts, agreements, etc.) can be analyzed.",
+          details: validation.reason,
+          code: "NOT_A_LEGAL_DOCUMENT"
+        });
+      }
+
+      console.log('[VALIDATION] Text document validated as legal document:', {
+        documentType: validation.documentType,
+        reason: validation.reason
+      });
+
       // Analyze document with Groq
       const startTime = Date.now();
       const analysis = await analyzeDocument(
         parsedDoc.content,
-        documentType,
+        validation.documentType || documentType,
         preferredLanguage as string,
         summaryLength,
       );
@@ -620,6 +710,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("[HISTORY] Delete item error:", error);
       res.status(500).json({ error: "Failed to delete history item" });
+    }
+  });
+
+  // Get encrypted document metadata
+  app.get(["/api/documents/:documentId", "/api/documents-get"], requireAuth, async (req, res) => {
+    try {
+      const { documentId } = req.params;
+      const document = await storage.getDocument(documentId);
+
+      if (!document) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      // Verify user owns this document
+      if (document.userId !== req.user.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      res.json({
+        id: document.id,
+        filename: document.filename,
+        isEncrypted: document.isEncrypted,
+        encryptedStoragePath: document.encryptedStoragePath,
+        uploadedAt: document.uploadedAt,
+        documentType: document.documentType,
+      });
+    } catch (error) {
+      console.error("[DOCUMENTS] Get document error:", error);
+      res.status(500).json({ error: "Failed to retrieve document metadata" });
+    }
+  });
+
+  // Retrieve and decrypt document content
+  app.get(["/api/documents/:documentId/download", "/api/documents-download"], requireAuth, async (req, res) => {
+    try {
+      const { documentId } = req.params;
+      const document = await storage.getDocument(documentId);
+
+      if (!document) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      // Verify user owns this document
+      if (document.userId !== req.user.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      if (!document.isEncrypted || !document.encryptedStoragePath) {
+        return res.status(400).json({ error: "Document is not encrypted or storage path not available" });
+      }
+
+      // Retrieve and decrypt document
+      try {
+        const decryptedContent = await DocumentRetrievalService.getDecryptedDocument(
+          document.encryptedStoragePath,
+        );
+
+        res.json({
+          id: document.id,
+          filename: document.filename,
+          content: decryptedContent,
+          uploadedAt: document.uploadedAt,
+        });
+      } catch (decryptError) {
+        console.error("[DOCUMENTS] Decryption error:", decryptError);
+        res.status(500).json({ error: "Failed to decrypt document" });
+      }
+    } catch (error) {
+      console.error("[DOCUMENTS] Download error:", error);
+      res.status(500).json({ error: "Failed to download document" });
+    }
+  });
+
+  // List user's encrypted documents
+  app.get(["/api/documents", "/api/documents-list"], requireAuth, async (req, res) => {
+    try {
+      const documents = await storage.getUserDocuments(req.user.id);
+
+      const documentList = documents.map((doc) => ({
+        id: doc.id,
+        filename: doc.filename,
+        isEncrypted: doc.isEncrypted,
+        encryptedStoragePath: doc.encryptedStoragePath,
+        uploadedAt: doc.uploadedAt,
+        documentType: doc.documentType,
+      }));
+
+      res.json(documentList);
+    } catch (error) {
+      console.error("[DOCUMENTS] List error:", error);
+      res.status(500).json({ error: "Failed to list documents" });
     }
   });
 

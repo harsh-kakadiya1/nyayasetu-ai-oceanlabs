@@ -149,6 +149,8 @@ export class MemStorage implements IStorage {
       userId: insertDocument.userId || null,
       filename: insertDocument.filename || null,
       uploadedAt: new Date(),
+      encryptedStoragePath: insertDocument.encryptedStoragePath || null,
+      isEncrypted: insertDocument.isEncrypted || false,
     };
     this.documents.set(id, document);
     return document;

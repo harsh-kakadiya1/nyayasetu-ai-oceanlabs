@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { UploadCloud, FileText, AlertCircle, Crown } from "lucide-react";
+import { UploadCloud, FileText, AlertCircle, Crown, AlertTriangle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -18,6 +18,12 @@ interface DocumentUploadProps {
   isAnalyzing: boolean;
 }
 
+interface ValidationError {
+  title: string;
+  description: string;
+  details?: string;
+}
+
 export default function DocumentUpload({ 
   onAnalysisStart, 
   onAnalysisComplete, 
@@ -31,6 +37,7 @@ export default function DocumentUpload({
   const [summaryLength, setSummaryLength] = useState("standard");
   const [isDragOver, setIsDragOver] = useState(false);
   const [isSubscriptionOpen, setIsSubscriptionOpen] = useState(false);
+  const [validationError, setValidationError] = useState<ValidationError | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user, updateTokens } = useAuth();
@@ -63,6 +70,7 @@ export default function DocumentUpload({
 
     setSelectedFile(file);
     setTextContent(""); // Clear text input when file is selected
+    setValidationError(null); // Clear any previous validation errors
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -106,6 +114,8 @@ export default function DocumentUpload({
       return;
     }
 
+    // Clear any previous validation errors when starting new analysis
+    setValidationError(null);
     onAnalysisStart();
 
     try {
@@ -152,11 +162,19 @@ export default function DocumentUpload({
         const error = await response.json().catch(() => ({}));
         const statusCode = response.status;
         const errorMessage = error.error || 'Analysis failed';
+        const errorCode = error.code || null;
+        
         if (statusCode === 402 || error.code === 'TOKENS_EXHAUSTED') {
           updateTokens(0);
           setIsSubscriptionOpen(true);
+          return;
         }
-        throw new Error(errorMessage);
+        
+        // Pass both error message and error code
+        const errorObj = new Error(errorMessage);
+        (errorObj as any).code = errorCode;
+        (errorObj as any).details = error.details;
+        throw errorObj;
       }
 
       const result = await response.json();
@@ -179,29 +197,64 @@ export default function DocumentUpload({
       
       // Check for specific error types
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorCode = (error as any)?.code;
+      const errorDetails = (error as any)?.details;
+      
       let toastTitle = t('upload.analysisError');
       let toastDescription = t('upload.analysisErrorDesc');
+      let isDestructive = true;
 
       if (errorMessage.includes('No tokens remaining')) {
         return;
       }
       
-      if (errorMessage.includes('overloaded') || errorMessage.includes('503')) {
+      // Handle legal document validation error
+      if (errorCode === 'NOT_A_LEGAL_DOCUMENT') {
+        const errorTitle = "Document Type Not Supported";
+        const errorDesc = "This document doesn't appear to be a legal document (contract, agreement, etc.). Please upload a legal document for analysis.";
+        
+        setValidationError({
+          title: errorTitle,
+          description: errorDesc,
+          details: errorDetails,
+        });
+        
+        toast({
+          title: errorTitle,
+          description: errorDesc,
+          variant: "destructive",
+        });
+      } else if (errorMessage.includes('overloaded') || errorMessage.includes('503')) {
         toastTitle = t('upload.serviceUnavailable');
         toastDescription = t('upload.serviceUnavailableDesc');
+        toast({
+          title: toastTitle,
+          description: toastDescription,
+          variant: "destructive",
+        });
       } else if (errorMessage.includes('Failed to fetch')) {
         toastTitle = t('upload.connectionError');
         toastDescription = t('upload.connectionErrorDesc');
+        toast({
+          title: toastTitle,
+          description: toastDescription,
+          variant: "destructive",
+        });
       } else if (errorMessage.includes('timeout')) {
         toastTitle = t('upload.timeoutError');
         toastDescription = t('upload.timeoutErrorDesc');
+        toast({
+          title: toastTitle,
+          description: toastDescription,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: toastTitle,
+          description: toastDescription,
+          variant: "destructive",
+        });
       }
-      
-      toast({
-        title: toastTitle,
-        description: toastDescription,
-        variant: "destructive",
-      });
     }
   };
 
@@ -238,6 +291,28 @@ export default function DocumentUpload({
 
       <div className="space-y-5 mb-4 sm:mb-6" data-testid="card-document-upload">
         <h3 className="text-base sm:text-lg font-semibold text-foreground" data-testid="text-upload-title">{t('upload.title')}</h3>
+      
+      {/* Validation Error Alert */}
+      {validationError && (
+        <div className="flex gap-3 p-4 rounded-lg bg-red-50 border border-red-200">
+          <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <h4 className="font-semibold text-red-900 mb-1">{validationError.title}</h4>
+            <p className="text-sm text-red-800">{validationError.description}</p>
+            {validationError.details && (
+              <p className="text-xs text-red-700 mt-2 italic">Detected: {validationError.details}</p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setValidationError(null)}
+            className="text-red-600 hover:text-red-900 flex-shrink-0 mt-0.5"
+            aria-label="Close alert"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
       
       {/* File Upload Area */}
       <div 
