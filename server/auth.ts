@@ -13,6 +13,21 @@ const PgSessionStore = connectPgSimple(session);
 let cachedSessionStore: session.Store | null = null;
 let cachedSessionPool: pg.Pool | null = null;
 
+function parsePositiveInt(value: string | undefined, fallback: number): number {
+  const parsed = Number.parseInt(value || "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function getSessionPoolMax(): number {
+  // Session queries are light; keep pool tiny on serverless to prevent max-client errors.
+  const fallback = process.env.VERCEL ? 1 : 10;
+  return parsePositiveInt(process.env.SESSION_DB_POOL_MAX, fallback);
+}
+
+function getDbConnectionTimeoutMs(): number {
+  return parsePositiveInt(process.env.DB_CONNECTION_TIMEOUT, 5000);
+}
+
 async function getSessionStore(): Promise<session.Store> {
   if (cachedSessionStore) {
     return cachedSessionStore;
@@ -28,6 +43,9 @@ async function getSessionStore(): Promise<session.Store> {
   const sessionPool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: getDbConnectionTimeoutMs(),
+    idleTimeoutMillis: 30000,
+    max: getSessionPoolMax(),
   });
 
   await sessionPool.query("SELECT 1");

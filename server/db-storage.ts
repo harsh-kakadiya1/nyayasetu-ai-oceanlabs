@@ -15,6 +15,21 @@ import { normalizeEmailIdentifier } from "./emailUtils.js";
 let pool: pg.Pool | null = null;
 let setupPromise: Promise<void> | null = null;
 
+function parsePositiveInt(value: string | undefined, fallback: number): number {
+  const parsed = Number.parseInt(value || "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function getDbPoolMax(): number {
+  // Keep serverless pool usage intentionally small to avoid exhausting Supabase poolers.
+  const fallback = process.env.VERCEL ? 3 : 20;
+  return parsePositiveInt(process.env.DB_POOL_MAX, fallback);
+}
+
+function getDbConnectionTimeoutMs(): number {
+  return parsePositiveInt(process.env.DB_CONNECTION_TIMEOUT, 5000);
+}
+
 function getPool() {
   if (!pool) {
     if (!process.env.DATABASE_URL) {
@@ -24,9 +39,9 @@ function getPool() {
     pool = new pg.Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: { rejectUnauthorized: false },
-      connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT || "5000", 10),
+      connectionTimeoutMillis: getDbConnectionTimeoutMs(),
       idleTimeoutMillis: 30000,
-      max: 20,
+      max: getDbPoolMax(),
     });
   }
 
