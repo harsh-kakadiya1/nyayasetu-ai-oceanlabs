@@ -1,7 +1,7 @@
 import DocumentUpload from "@/components/document-upload";
 import AnalysisResults from "@/components/analysis-results";
 import LoadingAnalysis from "@/components/loading-analysis";
-import { ArrowRight, FileText, Clock, History, Upload, CheckCircle2, ShieldAlert, TimerReset, ScanSearch, MessageSquare, Trash2 } from "lucide-react";
+import { ArrowRight, FileText, Clock, History, Upload, CheckCircle2, ShieldAlert, TimerReset, ScanSearch, MessageSquare, Trash2, AlertTriangle, X } from "lucide-react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -60,6 +60,8 @@ export default function Dashboard() {
 	const [selectedHistoryItem, setSelectedHistoryItem] = useState<Analysis | null>(null);
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [deletingHistoryId, setDeletingHistoryId] = useState<string | null>(null);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [historyToDelete, setHistoryToDelete] = useState<Analysis | null>(null);
 
 	useEffect(() => {
 		const previousBodyOverflow = document.body.style.overflow;
@@ -156,10 +158,14 @@ export default function Dashboard() {
 		setAnalysisResult(null);
 	};
 
-	const handleDeleteHistoryItem = async (analysisId: string) => {
-		if (!confirm("Delete this history item?")) {
-			return;
-		}
+	const handleDeleteHistoryItem = (analysis: Analysis) => {
+		setHistoryToDelete(analysis);
+		setDeleteDialogOpen(true);
+	};
+
+	const handleConfirmDeleteHistoryItem = async () => {
+		if (!historyToDelete) return;
+		const analysisId = historyToDelete.id;
 
 		try {
 			setDeletingHistoryId(analysisId);
@@ -177,6 +183,9 @@ export default function Dashboard() {
 				setSelectedHistoryItem(null);
 				setShowResults(false);
 			}
+
+			setDeleteDialogOpen(false);
+			setHistoryToDelete(null);
 
 			toast({
 				title: "Deleted",
@@ -309,7 +318,7 @@ export default function Dashboard() {
 										</button>
 										<button
 											type="button"
-											onClick={() => handleDeleteHistoryItem(analysis.id)}
+											onClick={() => handleDeleteHistoryItem(analysis)}
 											disabled={deletingHistoryId === analysis.id}
 											className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-[#7f989d] opacity-0 transition-colors hover:bg-[#f7dede] hover:text-[#c0392b] group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-60"
 											aria-label="Delete history item"
@@ -375,6 +384,66 @@ export default function Dashboard() {
 						)}
 					</div>
 				</main>
+
+				{deleteDialogOpen && historyToDelete && (
+					<div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm p-4 sm:items-center">
+						<div className="w-full max-w-md rounded-2xl border border-red-100 bg-white shadow-2xl overflow-hidden">
+							<div className="flex items-center justify-between border-b border-red-100 bg-gradient-to-r from-red-50 to-orange-50 px-5 py-4">
+								<div className="flex items-center gap-2">
+									<AlertTriangle className="h-5 w-5 text-red-600" />
+									<h3 className="text-base font-semibold text-[#1d3b40]">Delete History Item</h3>
+								</div>
+								<button
+									type="button"
+									onClick={() => {
+										setDeleteDialogOpen(false);
+										setHistoryToDelete(null);
+									}}
+									disabled={!!deletingHistoryId}
+									className="rounded-md p-1 text-gray-500 hover:bg-white/70 disabled:cursor-not-allowed disabled:opacity-60"
+									aria-label="Close delete confirmation"
+								>
+									<X className="h-4 w-4" />
+								</button>
+							</div>
+
+							<div className="space-y-4 px-5 py-5">
+								<p className="text-sm text-[#35565c]">
+									This action will permanently delete this analysis and all related chat messages.
+								</p>
+								<div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+									This cannot be undone.
+								</div>
+								<div className="rounded-lg border border-[#2d575e]/15 bg-[#f7fbf9] px-3 py-2">
+									<p className="text-[11px] font-semibold uppercase tracking-wide text-[#6b8a90]">Selected item</p>
+									<p className="mt-1 text-sm text-[#1f3d42] line-clamp-2">{historyToDelete.summary}</p>
+								</div>
+							</div>
+
+							<div className="flex gap-3 border-t border-[#2d575e]/12 bg-[#fbfdfc] px-5 py-4">
+								<button
+									type="button"
+									onClick={() => {
+										setDeleteDialogOpen(false);
+										setHistoryToDelete(null);
+									}}
+									disabled={!!deletingHistoryId}
+									className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+								>
+									Cancel
+								</button>
+								<button
+									type="button"
+									onClick={handleConfirmDeleteHistoryItem}
+									disabled={!!deletingHistoryId}
+									className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+								>
+									{deletingHistoryId ? "Deleting..." : "Delete"}
+								</button>
+							</div>
+						</div>
+					</div>
+				)}
 			</div>
 		</div>
 	);

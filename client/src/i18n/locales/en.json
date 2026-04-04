@@ -163,7 +163,15 @@
     "description": "Our AI is carefully reviewing your document to provide comprehensive insights..."
   },
   "history": {
-    "empty": "No analyses yet"
+    "empty": "No analyses yet",
+    "deleteConfirmTitle": "Delete Analysis",
+    "deleteConfirmDescription": "Are you sure you want to delete this analysis? This action cannot be undone.",
+    "deleteWarning": "Warning: This will permanently remove this analysis and all associated chat history.",
+    "deleteButton": "Delete Analysis",
+    "deleteCancel": "Cancel",
+    "deleteSuccess": "Analysis deleted successfully",
+    "deleteFailed": "Failed to delete analysis",
+    "deleting": "Deleting..."
   },
   "footer": {
     "product": "Product",
