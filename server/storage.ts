@@ -258,27 +258,11 @@ const useDatabase = process.env.DATABASE_URL &&
   process.env.DATABASE_URL !== 'postgresql://user:password@localhost:5432/nyayasetu' &&
   process.env.DATABASE_URL.startsWith('postgresql://');
 
-let storage: IStorage;
+// Initialize storage with in-memory storage as a fallback
+// This will be replaced with DbStorage once initialized
+let storage: IStorage = new MemStorage();
 
-async function initializeStorage() {
-  if (!useDatabase) {
-    throw new Error("DATABASE_URL is required. Supabase connection is mandatory.");
-  }
-
-  const { DbStorage } = await import('./db-storage.js');
-  const dbStorage = new DbStorage();
-  const ready = await dbStorage.isReady();
-
-  if (!ready) {
-    throw new Error("Supabase database connection failed. Check DATABASE_URL and network/DNS access.");
-  }
-
-  storage = dbStorage;
-  console.log('===========================================================');
-  console.log('STORAGE: Using PostgreSQL database');
-  console.log('DATABASE: Connected (Supabase only mode)');
-  console.log('===========================================================');
-}
+// Removed - functionality moved to ensureInitialized()
 
 // Lazy initialization - will be initialized on first use
 let initialized = false;
@@ -289,12 +273,36 @@ async function ensureInitialized() {
   if (initError) throw initError;
   
   try {
-    await initializeStorage();
+    if (!useDatabase) {
+      console.log('[STORAGE] DATABASE_URL not configured, using in-memory storage');
+      initialized = true;
+      return;
+    }
+    
+    const { DbStorage } = await import('./db-storage.js');
+    const dbStorage = new DbStorage();
+    const ready = await dbStorage.isReady();
+    
+    if (!ready) {
+      throw new Error('Supabase database connection failed. Check DATABASE_URL and network/DNS access.');
+    }
+    
+    storage = dbStorage;
     initialized = true;
+    
+    console.log('===========================================================');
+    console.log('STORAGE: Using PostgreSQL database');
+    console.log('DATABASE: Connected (Supabase only mode)');
+    console.log('===========================================================');
   } catch (error) {
     initError = error as Error;
     throw initError;
   }
 }
 
-export { storage, ensureInitialized };
+// Simplified initializeStorage (kept for backward compatibility)
+async function initializeStorage() {
+  await ensureInitialized();
+}
+
+export { storage, ensureInitialized, initializeStorage };

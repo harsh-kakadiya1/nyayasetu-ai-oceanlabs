@@ -109,6 +109,14 @@ export async function createApp() {
 // Traditional server mode
 if (!process.env.VERCEL) {
   (async () => {
+    const { initializeStorage } = await import('./storage.js');
+    try {
+      await initializeStorage();
+    } catch (err) {
+      console.error('[SERVER] Storage initialization failed:', err);
+      console.error('Make sure DATABASE_URL is set in your .env file');
+    }
+    
     const { server } = await createApp();
     // Default to port 5000 for local development.
     const port = parseInt(process.env.PORT || "5000", 10);

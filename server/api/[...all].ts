@@ -2,15 +2,27 @@ import { createApp } from "../index.js";
 import { ensureInitialized } from "../storage.js";
 
 let cachedAppPromise: ReturnType<typeof createApp> | null = null;
-let startupError: Error | null = null;
 
 export default async function handler(req: any, res: any) {
   try {
-    // Ensure storage is initialized before processing requests
-    await ensureInitialized();
-
+    // Ensure storage is initialized on first request
     if (!cachedAppPromise) {
-      cachedAppPromise = createApp();
+      try {
+        await ensureInitialized();
+      } catch (initError: any) {
+        console.error('[HANDLER] Storage initialization failed:', initError);
+        return res.status(500).json({
+          error: 'Internal Server Error',
+          message: initError?.message || 'Storage initialization failed',
+          code: 'STORAGE_INIT_FAILED',
+          timestamp: new Date().toISOString(),
+        });
+      }
+      
+      cachedAppPromise = createApp().catch((appError: any) => {
+        console.error('[HANDLER] App creation failed:', appError);
+        throw appError;
+      });
     }
 
     const { app } = await cachedAppPromise;
@@ -18,14 +30,13 @@ export default async function handler(req: any, res: any) {
     // Express apps are request handlers and can be invoked directly.
     return app(req, res);
   } catch (error: any) {
-    startupError = error;
-    console.error('[HANDLER] Startup error:', error);
+    console.error('[HANDLER] Request error:', error);
     
     // Return error response with diagnostics
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Internal Server Error',
-      message: error?.message || 'Failed to initialize backend',
-      code: 'STARTUP_FAILED',
+      message: error?.message || 'Failed to process request',
+      code: 'REQUEST_FAILED',
       timestamp: new Date().toISOString(),
     });
   }
