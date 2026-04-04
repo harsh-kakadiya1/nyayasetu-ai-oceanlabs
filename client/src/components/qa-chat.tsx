@@ -109,7 +109,7 @@ export default function QAChat({ analysisId, documentContent }: QAChatProps) {
 
   return (
     <section
-      className="analysis-card flex h-[520px] max-h-[70vh] flex-col overflow-hidden rounded-2xl border border-[#2d575e]/15 bg-[#f7fbf9] px-4 py-4 sm:px-5"
+      className="analysis-card flex h-[460px] max-h-[68vh] flex-col overflow-hidden rounded-2xl border border-[#2d575e]/15 bg-[#f7fbf9] px-4 py-4 sm:h-[520px] sm:max-h-[70vh] sm:px-5"
       data-testid="card-qa-chat"
     >
       <header className="flex-shrink-0 border-b border-[#2d575e]/10 pb-3">

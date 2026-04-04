@@ -136,14 +136,14 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-40 border-b border-[#2d545c]/15 bg-[#f9f5eb]/80 backdrop-blur-md">
       <div className="w-full px-3 sm:px-4 lg:px-6">
-      <div className="flex min-h-[68px] items-center justify-between py-3">
+      <div className="flex min-h-[68px] items-center justify-between gap-2 py-3 sm:gap-3">
           {/* Logo & Branding */}
-        <div className="flex flex-shrink-0 items-center space-x-2 sm:space-x-3">
+        <div className="flex min-w-0 flex-1 items-center space-x-2 sm:space-x-3 md:flex-none">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1f525a] sm:h-9 sm:w-9">
           <Scale className="h-4 w-4 text-[#e8fff7] sm:h-5 sm:w-5" />
             </div>
-            <div className="flex flex-col justify-center">
-          <span className="font-display whitespace-nowrap text-base font-semibold leading-tight text-[#1f3c41] sm:text-lg">{t("brand.name")}</span>
+            <div className="min-w-0 flex flex-col justify-center">
+          <span className="font-display block max-w-[9.5rem] truncate text-[0.95rem] font-semibold leading-tight text-[#1f3c41] sm:max-w-none sm:text-lg">{t("brand.name")}</span>
           <span className="-mt-1 hidden text-xs text-[#61868d] sm:block">{t("brand.tagline")}</span>
             </div>
           </div>
@@ -338,7 +338,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile menu button */}
-        <div className="flex flex-shrink-0 items-center space-x-2 md:hidden">
+        <div className="flex flex-shrink-0 items-center space-x-1.5 md:hidden">
             <div className="flex-shrink-0">
               <LanguageSelector />
             </div>
@@ -346,7 +346,7 @@ export default function Navbar() {
               variant="ghost"
               size="sm"
               onClick={toggleMenu}
-          className="flex-shrink-0 p-2 text-[#2b555c]"
+          className="h-9 w-9 flex-shrink-0 p-0 text-[#2b555c]"
             >
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
@@ -356,7 +356,7 @@ export default function Navbar() {
         {/* Mobile Navigation Menu */}
         {isMenuOpen && (
         <div className="border-t border-[#2f5960]/20 bg-[#f9f5eb] md:hidden">
-        <div className="space-y-3 py-4">
+        <div className="space-y-2 px-3 py-4">
               <Link href="/" onClick={() => setIsMenuOpen(false)}>
           <div className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]">
                   {t("navigation.home", { defaultValue: "Home" })}
@@ -373,14 +373,14 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => scrollToLandingSection("pricing")}
-                    className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
+                    className="block w-full rounded-lg px-4 py-2 text-left text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
                   >
                     {t("navigation.pricing")}
                   </button>
                   <button
                     type="button"
                     onClick={() => scrollToLandingSection("faqs")}
-                    className="block rounded-lg px-4 py-2 text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
+                    className="block w-full rounded-lg px-4 py-2 text-left text-base font-medium text-[#52767d] transition-colors hover:bg-[#e9f7f2] hover:text-[#264f56]"
                   >
                     {t("navigation.faqs")}
                   </button>

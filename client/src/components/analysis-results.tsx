@@ -299,7 +299,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
           </p>
           {summaryKeyTerms && Object.keys(summaryKeyTerms).length > 0 && (
             <div className="pt-2" data-testid="section-key-terms">
-              <div className="flex items-center justify-between mb-2">
+              <div className="mb-2 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h4 className="font-medium text-sm sm:text-base text-foreground" data-testid="text-key-terms-title">{t("analysis.keyTerms")}</h4>
                 <TooltipProvider>
                   <Tooltip>
@@ -413,7 +413,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
                 {expandedClauses.has(index) && (
                   <div className="mt-3 space-y-3" data-testid={`clause-content-${index}`}>
                     <div>
-                      <div className="mb-2 flex items-center justify-between">
+                      <div className="mb-2 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <h5 className="text-xs font-medium text-foreground sm:text-sm">Original Text</h5>
                         <Button
                           variant="ghost"
@@ -441,7 +441,7 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
                       </p>
                     </div>
                     <div>
-                      <div className="mb-2 flex items-center justify-between">
+                      <div className="mb-2 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <h5 className="text-xs font-medium text-foreground sm:text-sm">Plain Language</h5>
                         <Button
                           variant="ghost"

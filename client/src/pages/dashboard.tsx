@@ -1,13 +1,12 @@
 import DocumentUpload from "@/components/document-upload";
 import AnalysisResults from "@/components/analysis-results";
 import LoadingAnalysis from "@/components/loading-analysis";
-import { ArrowRight, FileText, Clock, History, Upload, CheckCircle2, ShieldAlert, TimerReset, ScanSearch, MessageSquare, Trash2, AlertTriangle, X } from "lucide-react";
+import { FileText, History, Upload, CheckCircle2, Trash2, AlertTriangle, X } from "lucide-react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import API_ENDPOINTS from "@/lib/api";
 import HistoryAnalysisResults from "@/components/history-analysis-results";
 
@@ -58,22 +57,20 @@ export default function Dashboard() {
 	const [analyses, setAnalyses] = useState<Analysis[]>([]);
 	const [historyLoading, setHistoryLoading] = useState(true);
 	const [selectedHistoryItem, setSelectedHistoryItem] = useState<Analysis | null>(null);
-	const [sidebarOpen, setSidebarOpen] = useState(true);
+	const [sidebarOpen, setSidebarOpen] = useState(() => (typeof window !== "undefined" ? window.innerWidth >= 1024 : true));
 	const [deletingHistoryId, setDeletingHistoryId] = useState<string | null>(null);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [historyToDelete, setHistoryToDelete] = useState<Analysis | null>(null);
 
 	useEffect(() => {
-		const previousBodyOverflow = document.body.style.overflow;
-		const previousHtmlOverflow = document.documentElement.style.overflow;
-
-		document.body.style.overflow = "hidden";
-		document.documentElement.style.overflow = "hidden";
-
-		return () => {
-			document.body.style.overflow = previousBodyOverflow;
-			document.documentElement.style.overflow = previousHtmlOverflow;
+		const handleResize = () => {
+			if (window.innerWidth >= 1024) {
+				setSidebarOpen(true);
+			}
 		};
+
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
 	}, []);
 
 	useEffect(() => {
@@ -139,23 +136,13 @@ export default function Dashboard() {
 		});
 	};
 
-	const getRiskBadgeColor = (riskLevel: string) => {
-		switch (riskLevel) {
-			case 'high':
-				return 'bg-red-100 text-red-700 border-red-200';
-			case 'medium':
-				return 'bg-amber-100 text-amber-700 border-amber-200';
-			case 'low':
-				return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-			default:
-				return 'bg-gray-100 text-gray-700 border-gray-200';
-		}
-	};
-
 	const handleHistoryClick = (analysis: Analysis) => {
 		setSelectedHistoryItem(analysis);
 		setShowResults(true);
 		setAnalysisResult(null);
+		if (typeof window !== "undefined" && window.innerWidth < 1024) {
+			setSidebarOpen(false);
+		}
 	};
 
 	const handleDeleteHistoryItem = (analysis: Analysis) => {
@@ -252,18 +239,28 @@ export default function Dashboard() {
 	};
 
 	return (
-		<div className="h-[calc(100dvh-68px)] overflow-hidden bg-gradient-to-br from-[#f8f4ea] via-[#edf4f1] to-[#f4f8f7]">
-			<div className="flex h-full overflow-hidden">
+		<div className="min-h-[calc(100dvh-68px)] bg-gradient-to-br from-[#f8f4ea] via-[#edf4f1] to-[#f4f8f7]">
+			<div className="relative flex min-h-[calc(100dvh-68px)]">
+				{sidebarOpen && (
+					<button
+						type="button"
+						onClick={() => setSidebarOpen(false)}
+						className="fixed inset-0 z-40 bg-black/35 backdrop-blur-[1px] lg:hidden"
+						aria-label="Close history panel"
+					/>
+				)}
+
 				{!sidebarOpen && (
 					<button
 						onClick={() => setSidebarOpen(true)}
-						className="fixed left-4 top-20 z-50 flex h-10 w-10 items-center justify-center rounded-lg bg-[#1f565f] text-white transition-colors hover:bg-[#173f46]"
+						className="fixed bottom-5 right-4 z-40 flex h-11 w-11 items-center justify-center rounded-lg bg-[#1f565f] text-white shadow-[0_10px_24px_rgba(23,63,70,0.35)] transition-colors hover:bg-[#173f46] lg:bottom-auto lg:right-auto lg:left-4 lg:top-24"
+						aria-label="Open history panel"
 					>
 						<History className="h-5 w-5" />
 					</button>
 				)}
 
-				<aside className={`${sidebarOpen ? "w-72" : "w-0"} flex h-full flex-shrink-0 flex-col overflow-hidden border-r border-[#2d575e]/15 bg-white/70 backdrop-blur-sm transition-all duration-300`}>
+				<aside className={`${sidebarOpen ? "translate-x-0 lg:w-72" : "-translate-x-full pointer-events-none lg:pointer-events-auto lg:translate-x-0 lg:w-0"} fixed inset-y-[68px] left-0 z-50 flex w-[86vw] max-w-[320px] flex-shrink-0 flex-col overflow-hidden border-r border-[#2d575e]/15 bg-white/90 shadow-2xl backdrop-blur-sm transition-all duration-300 lg:relative lg:inset-y-0 lg:left-auto lg:z-auto lg:max-w-none lg:bg-white/70 lg:shadow-none`}>
 					<div className="flex items-center justify-between border-b border-[#2d575e]/10 px-4 py-3">
 						<div className="flex items-center gap-2">
 							<History className="h-4 w-4 text-[#4a7379]" />
@@ -282,6 +279,9 @@ export default function Dashboard() {
 								setShowResults(false);
 								setAnalysisResult(null);
 								setSelectedHistoryItem(null);
+								if (typeof window !== "undefined" && window.innerWidth < 1024) {
+									setSidebarOpen(false);
+								}
 							}}
 							className="h-10 w-full rounded-xl bg-[#1f565f] text-white hover:bg-[#173f46]"
 						>
@@ -320,7 +320,7 @@ export default function Dashboard() {
 											type="button"
 											onClick={() => handleDeleteHistoryItem(analysis)}
 											disabled={deletingHistoryId === analysis.id}
-											className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-[#7f989d] opacity-0 transition-colors hover:bg-[#f7dede] hover:text-[#c0392b] group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-60"
+											className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-[#7f989d] opacity-100 transition-colors hover:bg-[#f7dede] hover:text-[#c0392b] sm:opacity-0 sm:group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-60"
 											aria-label="Delete history item"
 										>
 											<Trash2 className="h-3.5 w-3.5" />
@@ -332,9 +332,9 @@ export default function Dashboard() {
 					</div>
 				</aside>
 
-				<main className="h-full flex-1 overflow-y-auto">
-					<div className="mx-auto max-w-5xl px-6 py-6 lg:px-8 lg:py-8">
-						<div className="mb-6 flex items-end justify-between gap-4">
+				<main className="min-w-0 flex-1 overflow-y-auto">
+					<div className="mx-auto max-w-5xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+						<div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
 							{(!showResults || isAnalyzing) && !selectedHistoryItem && (
 								<div>
 									<h1 className="font-display text-2xl font-semibold text-[#1d3b40]">{t("analysis.title")}</h1>

@@ -32,15 +32,15 @@ export default function HeroSection({
               {badgeText}
             </div>
             <AnimatedHeading />
-            <div className="mt-7 flex flex-wrap items-center justify-center gap-3 lg:justify-start lg:pl-28">
+            <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start lg:pl-16">
               <Button
                 onClick={onCtaClick}
-                className="group h-12 rounded-full bg-[#1f565f] px-7 text-sm font-semibold text-[#f3fffb] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#173f46] hover:shadow-[0_10px_20px_rgba(23,63,70,0.28)]"
+                className="group h-12 w-full rounded-full bg-[#1f565f] px-7 text-sm font-semibold text-[#f3fffb] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#173f46] hover:shadow-[0_10px_20px_rgba(23,63,70,0.28)] sm:w-auto"
               >
                 {ctaText}
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
               </Button>
-              <span className="text-sm font-medium text-[#486b71]">
+              <span className="text-center text-sm font-medium text-[#486b71] sm:text-left">
                 {subCtaText}
               </span>
             </div>

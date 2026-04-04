@@ -219,7 +219,7 @@ export default function Landing() {
             <Button
               onClick={handleGetStarted}
               variant="ghost"
-              className="rounded-full border border-[#29545b]/25 px-5 text-[#20474e] hover:bg-[#e8f4f1]"
+              className="w-full rounded-full border border-[#29545b]/25 px-5 text-[#20474e] hover:bg-[#e8f4f1] sm:w-auto"
             >
               {t("landing.workflow.cta")}
             </Button>
@@ -298,7 +298,7 @@ export default function Landing() {
                 </ul>
                 <Button
                   onClick={() => handlePlanSelect(plan.key)}
-                  className={`w-full min-w-[180px] rounded-full font-semibold transition-all duration-300 mt-auto ${
+                  className={`mt-auto w-full rounded-full font-semibold transition-all duration-300 ${
                     plan.highlighted
                       ? "bg-[#f6b26b] text-[#492309] hover:bg-[#f3a453]"
                       : "bg-[#1f565f] text-white hover:bg-[#173f46]"
@@ -346,7 +346,7 @@ export default function Landing() {
             </div>
             <Button
               onClick={handleGetStarted}
-              className="h-12 rounded-full bg-[#f6b26b] px-8 text-sm font-semibold text-[#492309] hover:bg-[#f3a453]"
+              className="h-12 w-full rounded-full bg-[#f6b26b] px-8 text-sm font-semibold text-[#492309] hover:bg-[#f3a453] sm:w-auto"
             >
               {t("navigation.getStarted")}
               <ArrowRight className="ml-2 h-4 w-4" />

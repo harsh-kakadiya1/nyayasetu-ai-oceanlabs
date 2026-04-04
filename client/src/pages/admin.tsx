@@ -187,7 +187,81 @@ export default function Admin() {
             <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-[#4a7379]">Users & Plans</h2>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="space-y-3 p-4 sm:hidden">
+            {loading ? (
+              [...Array(3)].map((_, index) => (
+                <div key={index} className="h-36 animate-pulse rounded-xl border border-[#2d575e]/12 bg-[#f6fbf9]" />
+              ))
+            ) : users.length === 0 ? (
+              <div className="rounded-xl border border-[#2d575e]/12 bg-[#f8fcfa] px-4 py-8 text-center text-sm text-[#6e8f95]">
+                No users found.
+              </div>
+            ) : (
+              users.map((user) => {
+                const draft = drafts[user.id] || { plan: user.plan, tokens: user.tokens };
+                const isSaving = savingUserId === user.id;
+
+                return (
+                  <article key={user.id} className="rounded-xl border border-[#2d575e]/12 bg-[#fbfdfc] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-[#1d3b40]">{user.username}</p>
+                        <p className="mt-1 break-all text-[11px] text-[#6b8a90]">{user.id}</p>
+                      </div>
+                      <span className={`rounded-full px-2 py-1 text-xs font-semibold ${user.isAdmin ? "bg-[#e7f5f2] text-[#1f565f]" : "bg-[#f2f4f5] text-[#577176]"}`}>
+                        {user.isAdmin ? "admin" : "user"}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-1 gap-3">
+                      <div>
+                        <Label htmlFor={`mobile-plan-${user.id}`} className="text-xs text-[#5f7f85]">
+                          Plan
+                        </Label>
+                        <select
+                          id={`mobile-plan-${user.id}`}
+                          className="mt-1 h-10 w-full rounded-md border border-[#2d575e]/20 bg-white px-2 text-sm text-[#1d3b40]"
+                          value={draft.plan}
+                          onChange={(event) => updateDraftPlan(user.id, event.target.value as UserPlan)}
+                        >
+                          <option value="starter">starter</option>
+                          <option value="professional">professional</option>
+                          <option value="enterprise">enterprise</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor={`mobile-tokens-${user.id}`} className="text-xs text-[#5f7f85]">
+                          Tokens
+                        </Label>
+                        <Input
+                          id={`mobile-tokens-${user.id}`}
+                          type="number"
+                          min={0}
+                          step={1}
+                          value={draft.tokens}
+                          onChange={(event) => updateDraftTokens(user.id, Number(event.target.value || 0))}
+                          className="mt-1 h-10 w-full"
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      size="sm"
+                      onClick={() => saveUser(user)}
+                      disabled={isSaving}
+                      className="mt-4 inline-flex w-full items-center justify-center gap-1"
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                      {isSaving ? "Saving" : "Save"}
+                    </Button>
+                  </article>
+                );
+              })
+            )}
+          </div>
+
+          <div className="hidden overflow-x-auto sm:block">
             <table className="min-w-full text-sm">
               <thead className="bg-[#f2f8f6] text-[#4a7379]">
                 <tr>
