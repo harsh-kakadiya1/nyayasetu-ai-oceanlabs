@@ -367,7 +367,7 @@
         "professional": {
           "name": "Professional",
           "description": "50 credits for professionals who need higher usage",
-          "price": "$29",
+          "price": "Rs 999",
           "period": "for 50 credits",
           "features": [
             "50 credits included",

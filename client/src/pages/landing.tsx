@@ -22,6 +22,7 @@ import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import API_ENDPOINTS from "@/lib/api";
 import {
   Accordion,
   AccordionContent,
@@ -31,6 +32,55 @@ import {
 import HeroSection from "@/components/hero-section";
 import StatsCounter from "@/components/stats-counter";
 
+type RazorpayOrderResponse = {
+  keyId: string;
+  amount: number;
+  currency: string;
+  orderId: string;
+  plan: "professional" | "enterprise";
+};
+
+type RazorpaySuccessPayload = {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+};
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => {
+      open: () => void;
+    };
+  }
+}
+
+const RAZORPAY_SCRIPT_URL = "https://checkout.razorpay.com/v1/checkout.js";
+
+let razorpayScriptLoader: Promise<boolean> | null = null;
+
+function loadRazorpayScript(): Promise<boolean> {
+  if (typeof window === "undefined") {
+    return Promise.resolve(false);
+  }
+
+  if (window.Razorpay) {
+    return Promise.resolve(true);
+  }
+
+  if (!razorpayScriptLoader) {
+    razorpayScriptLoader = new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = RAZORPAY_SCRIPT_URL;
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  }
+
+  return razorpayScriptLoader;
+}
+
 export default function Landing() {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -38,7 +88,7 @@ export default function Landing() {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [selectedPaidPlan, setSelectedPaidPlan] = useState<"professional" | "enterprise" | null>(null);
   const [activatingPaidPlan, setActivatingPaidPlan] = useState(false);
-  const { user, activatePlan } = useAuth();
+  const { user, checkAuth } = useAuth();
 
   const quickStats = [
     { label: t("landing.quickStats.documentsChecked"), value: "12K+", icon: FileText },
@@ -178,15 +228,24 @@ export default function Landing() {
       return;
     }
 
-    const result = await activatePlan(plan, { paymentConfirmed: true });
+    const result = await fetch(API_ENDPOINTS.subscription.activate, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ plan, paymentConfirmed: true }),
+    });
+
     if (!result.ok) {
+      const failed = await result.json().catch(() => ({ error: "Please try again" }));
       toast({
         title: "Plan activation failed",
-        description: result.error || "Please try again",
+        description: failed.error || "Please try again",
         variant: "destructive",
       });
       return;
     }
+
+    await checkAuth();
 
     toast({
       title: "Plan activated",
@@ -212,16 +271,94 @@ export default function Landing() {
 
     try {
       setActivatingPaidPlan(true);
-      const result = await activatePlan(selectedPaidPlan, { paymentConfirmed: true });
 
-      if (!result.ok) {
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded || !window.Razorpay) {
         toast({
-          title: "Payment activation failed",
-          description: result.error || "Please try again",
+          title: "Payment gateway unavailable",
+          description: "Unable to load Razorpay checkout. Please try again.",
           variant: "destructive",
         });
         return;
       }
+
+      const orderResponse = await fetch(API_ENDPOINTS.payments.createRazorpayOrder, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ plan: selectedPaidPlan }),
+      });
+
+      if (!orderResponse.ok) {
+        const failed = await orderResponse.json().catch(() => ({ error: "Please try again" }));
+        toast({
+          title: "Payment initialization failed",
+          description: failed.error || "Please try again",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const order = (await orderResponse.json()) as RazorpayOrderResponse;
+
+      const paymentResult = await new Promise<RazorpaySuccessPayload | null>((resolve) => {
+        const checkout = new window.Razorpay!({
+          key: order.keyId,
+          amount: order.amount,
+          currency: order.currency,
+          name: "NyayaSetu",
+          description: `${order.plan} plan subscription`,
+          order_id: order.orderId,
+          prefill: {
+            email: user?.username,
+          },
+          notes: {
+            plan: order.plan,
+            userId: user?.id,
+          },
+          theme: {
+            color: "#1f565f",
+          },
+          handler: (response: RazorpaySuccessPayload) => {
+            resolve(response);
+          },
+          modal: {
+            ondismiss: () => resolve(null),
+          },
+        });
+
+        checkout.open();
+      });
+
+      if (!paymentResult) {
+        toast({
+          title: "Payment cancelled",
+          description: "You cancelled the payment flow.",
+        });
+        return;
+      }
+
+      const verifyResponse = await fetch(API_ENDPOINTS.payments.verifyRazorpayPayment, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          plan: selectedPaidPlan,
+          ...paymentResult,
+        }),
+      });
+
+      if (!verifyResponse.ok) {
+        const failed = await verifyResponse.json().catch(() => ({ error: "Please try again" }));
+        toast({
+          title: "Payment verification failed",
+          description: failed.error || "Please try again",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await checkAuth();
 
       toast({
         title: "Payment successful",
@@ -365,7 +502,7 @@ export default function Landing() {
             <p className="text-sm text-[#315b61]">
               Selected plan: <span className="font-semibold text-[#1f565f]">{selectedPaidPlan ? selectedPaidPlan : "None selected"}</span>
             </p>
-            <p className="mt-1 text-xs text-[#6d8d92]">For hackathon demo, this simulates a successful payment confirmation.</p>
+            <p className="mt-1 text-xs text-[#6d8d92]">Complete Razorpay checkout to activate this plan.</p>
           </div>
 
           <Button

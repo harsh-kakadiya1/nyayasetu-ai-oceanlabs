@@ -8,6 +8,8 @@ import multer from "multer";
 import path from "path";
 import passport from "passport";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
+import Razorpay from "razorpay";
 import { requireAuth } from "./auth.js";
 import { normalizeEmailIdentifier } from "./emailUtils.js";
 
@@ -19,6 +21,24 @@ const PLAN_TOKEN_DEFAULTS: Record<"starter" | "professional" | "enterprise", num
   professional: 50,
   enterprise: 200,
 };
+
+const PLAN_PRICE_PAISE: Record<"professional" | "enterprise", number> = {
+  professional: Number(process.env.RAZORPAY_PROFESSIONAL_AMOUNT_PAISE || "99900"),
+  enterprise: Number(process.env.RAZORPAY_ENTERPRISE_AMOUNT_PAISE || "249900"),
+};
+
+const RAZORPAY_CURRENCY = process.env.RAZORPAY_CURRENCY || "INR";
+
+function getRazorpayInstance() {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+  if (!keyId || !keySecret) {
+    return null;
+  }
+
+  return new Razorpay({ key_id: keyId, key_secret: keySecret });
+}
 
 function userIsAdmin(user: any): boolean {
   if (!user) {
@@ -673,10 +693,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/payments/razorpay/create-order", requireAuth, async (req, res) => {
+    try {
+      const plan = String(req.body?.plan || "").toLowerCase();
+
+      if (plan !== "professional" && plan !== "enterprise") {
+        return res.status(400).json({ error: "Paid plan must be professional or enterprise" });
+      }
+
+      const razorpay = getRazorpayInstance();
+      if (!razorpay || !process.env.RAZORPAY_KEY_ID) {
+        return res.status(500).json({ error: "Payment gateway is not configured" });
+      }
+
+      const amount = PLAN_PRICE_PAISE[plan as "professional" | "enterprise"];
+      if (!Number.isFinite(amount) || amount <= 0) {
+        return res.status(500).json({ error: "Invalid payment amount configuration" });
+      }
+
+      const compactUserId = String(req.user.id || "user").replace(/-/g, "").slice(0, 8);
+      const receipt = `rcpt_${Date.now()}_${compactUserId}`;
+
+      const order = await razorpay.orders.create({
+        amount,
+        currency: RAZORPAY_CURRENCY,
+        receipt,
+        notes: {
+          userId: req.user.id,
+          plan,
+          username: req.user.username,
+        },
+      });
+
+      return res.json({
+        keyId: process.env.RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        orderId: order.id,
+        plan,
+      });
+    } catch (error) {
+      console.error("[PAYMENT] Create order error:", error);
+      return res.status(500).json({ error: "Failed to create payment order" });
+    }
+  });
+
+  app.post("/api/payments/razorpay/verify", requireAuth, async (req, res) => {
+    try {
+      const plan = String(req.body?.plan || "").toLowerCase();
+      const razorpayOrderId = String(req.body?.razorpay_order_id || "");
+      const razorpayPaymentId = String(req.body?.razorpay_payment_id || "");
+      const razorpaySignature = String(req.body?.razorpay_signature || "");
+
+      if (plan !== "professional" && plan !== "enterprise") {
+        return res.status(400).json({ error: "Invalid plan" });
+      }
+
+      if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+        return res.status(400).json({ error: "Missing payment verification fields" });
+      }
+
+      const keySecret = process.env.RAZORPAY_KEY_SECRET;
+      if (!keySecret) {
+        return res.status(500).json({ error: "Payment verification is not configured" });
+      }
+
+      const expectedSignature = crypto
+        .createHmac("sha256", keySecret)
+        .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+        .digest("hex");
+
+      if (expectedSignature !== razorpaySignature) {
+        return res.status(400).json({ error: "Invalid payment signature", code: "INVALID_SIGNATURE" });
+      }
+
+      const updated = await storage.updateUserPlan(
+        req.user.id,
+        plan as "professional" | "enterprise",
+        PLAN_TOKEN_DEFAULTS[plan as "professional" | "enterprise"],
+      );
+
+      if (!updated) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      return res.json({
+        success: true,
+        user: {
+          id: updated.id,
+          username: updated.username,
+          tokens: updated.tokens,
+          plan: updated.plan,
+          role: updated.role,
+          isAdmin: userIsAdmin(updated),
+        },
+      });
+    } catch (error) {
+      console.error("[PAYMENT] Verify payment error:", error);
+      return res.status(500).json({ error: "Failed to verify payment" });
+    }
+  });
+
   app.post("/api/subscription/activate", requireAuth, async (req, res) => {
     try {
       const requestedPlan = String(req.body?.plan || "").toLowerCase();
-      const paymentConfirmed = Boolean(req.body?.paymentConfirmed);
       const allowedPlans = ["starter", "professional", "enterprise"] as const;
 
       if (!allowedPlans.includes(requestedPlan as any)) {
@@ -685,9 +805,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const plan = requestedPlan as (typeof allowedPlans)[number];
 
-      if (plan !== "starter" && !paymentConfirmed) {
+      if (plan !== "starter") {
         return res.status(402).json({
-          error: "Payment required for this plan",
+          error: "Paid plans must be activated via verified payment",
           code: "PAYMENT_REQUIRED",
           plan,
           paymentSection: "#payment",

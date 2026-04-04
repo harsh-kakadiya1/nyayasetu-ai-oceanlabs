@@ -26,6 +26,10 @@ export const API_ENDPOINTS = {
   subscription: {
     activate: `${API_BASE_URL}/api/subscription/activate`,
   },
+  payments: {
+    createRazorpayOrder: `${API_BASE_URL}/api/payments/razorpay/create-order`,
+    verifyRazorpayPayment: `${API_BASE_URL}/api/payments/razorpay/verify`,
+  },
   admin: {
     users: `${API_BASE_URL}/api/admin/users`,
     userById: (userId: string) => `${API_BASE_URL}/api/admin/users/${encodeURIComponent(userId)}`,
