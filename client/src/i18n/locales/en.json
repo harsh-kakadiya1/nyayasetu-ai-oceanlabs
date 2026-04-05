@@ -295,6 +295,13 @@
   "landing": {
     "hero": {
       "badge": "Legal reading, reimagined",
+      "lines": [
+        "Turn legal jargon into clarity",
+        "Spot risks before they cost you",
+        "Contracts, explained in plain language",
+        "Decode contracts instantly",
+        "Stop guessing. Start understanding."
+      ],
       "title": "Understand contracts",
       "highlight": "before they understand you.",
       "description": "Nyayasetu AI turns legal complexity into clear action points. Upload any agreement, detect hidden risk, and prepare better questions before you sign.",
