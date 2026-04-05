@@ -50,6 +50,8 @@ interface SaveToggleProps {
   loadingDuration?: number;
   successDuration?: number;
   onStatusChange?: (status: ButtonStatus) => void;
+  onAction?: () => Promise<void> | void;
+  onActionError?: (error: unknown) => void;
 }
 
 export const SaveToggle: React.FC<SaveToggleProps> = ({
@@ -59,6 +61,8 @@ export const SaveToggle: React.FC<SaveToggleProps> = ({
   loadingDuration = 1000,
   successDuration = 800,
   onStatusChange,
+  onAction,
+  onActionError,
 }) => {
   const [status, setStatus] = useState<ButtonStatus>('idle');
   const { theme } = useTheme();
@@ -71,17 +75,22 @@ export const SaveToggle: React.FC<SaveToggleProps> = ({
     onStatusChange?.(status);
   }, [status, onStatusChange]);
 
-  const handleClick = () => {
+  const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+  const handleClick = async () => {
     if (status === 'idle') {
       setStatus('loading');
 
-      setTimeout(() => {
+      try {
+        const actionPromise = Promise.resolve(onAction?.());
+        await Promise.all([wait(loadingDuration), actionPromise]);
         setStatus('success');
-
-        setTimeout(() => {
-          setStatus('saved');
-        }, successDuration);
-      }, loadingDuration);
+        await wait(successDuration);
+        setStatus('saved');
+      } catch (error) {
+        onActionError?.(error);
+        setStatus('idle');
+      }
     } else if (status === 'saved') {
       setStatus('idle');
     }

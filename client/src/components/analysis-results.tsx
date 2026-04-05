@@ -4,7 +4,7 @@ import { SaveToggle } from "@/components/ui/save-toggle";
 import { jsPDF } from "jspdf";
 import RiskAssessment from "./risk-assessment";
 import QAChat from "./qa-chat";
-import { ChevronDown, ChevronRight, Copy, Check, Share2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
@@ -56,8 +56,6 @@ export default function AnalysisResults({
   const [expandedClauses, setExpandedClauses] = useState<Set<number>>(new Set());
   const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set());
   const [downloadStatus, setDownloadStatus] = useState<'idle' | 'loading' | 'success' | 'saved'>('idle');
-  const [isSharing, setIsSharing] = useState(false);
-  const [shareCopied, setShareCopied] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -234,11 +232,9 @@ export default function AnalysisResults({
   }, [analysis, documentData.filename, toast]);
 
   const handleShareAnalysis = useCallback(async () => {
-    if (!analysis.id || isSharing) {
-      return;
+    if (!analysis.id) {
+      throw new Error("Analysis ID is required");
     }
-
-    setIsSharing(true);
 
     try {
       const response = await fetch(API_ENDPOINTS.analysis.share(analysis.id), {
@@ -264,23 +260,14 @@ export default function AnalysisResults({
         throw new Error("Share link is unavailable");
       }
 
-      let copied = false;
       try {
         await navigator.clipboard.writeText(shareUrl);
-        copied = true;
-      } catch (copyError) {
-        console.warn("Clipboard copy failed:", copyError);
-      }
-
-      if (copied) {
-        setShareCopied(true);
         toast({
           title: t("analysis.shareLinkReady", { defaultValue: "Share link ready" }),
           description: t("analysis.shareLinkCopied", { defaultValue: "Public link copied to clipboard" }),
         });
-
-        setTimeout(() => setShareCopied(false), 2200);
-      } else {
+      } catch (copyError) {
+        console.warn("Clipboard copy failed:", copyError);
         window.prompt(t("analysis.copyShareLinkPrompt", { defaultValue: "Copy this public link:" }), shareUrl);
         toast({
           title: t("analysis.shareLinkReady", { defaultValue: "Share link ready" }),
@@ -297,10 +284,10 @@ export default function AnalysisResults({
         description: message,
         variant: "destructive",
       });
-    } finally {
-      setIsSharing(false);
+
+      throw error instanceof Error ? error : new Error(message);
     }
-  }, [analysis.id, isSharing, t, toast]);
+  }, [analysis.id, t, toast]);
 
   const toggleClause = (index: number) => {
     const newExpanded = new Set(expandedClauses);
@@ -354,22 +341,14 @@ export default function AnalysisResults({
       {/* Download Report Button */}
       <div className="flex flex-wrap items-center justify-end gap-2 pb-1">
         {allowShare && (
-          <Button
-            type="button"
-            variant="outline"
+          <SaveToggle
             size="sm"
-            onClick={handleShareAnalysis}
-            disabled={isSharing}
-            className="h-10 rounded-full border-[#2d575e]/20 bg-white/70 px-4 text-sm font-semibold text-[#1f4f57] hover:bg-[#eef8f5]"
-            data-testid="button-share-analysis"
-          >
-            {shareCopied ? <Check className="mr-2 h-4 w-4" /> : <Share2 className="mr-2 h-4 w-4" />}
-            {shareCopied
-              ? t("analysis.linkCopied", { defaultValue: "Link copied" })
-              : isSharing
-                ? t("analysis.sharing", { defaultValue: "Sharing..." })
-                : t("analysis.share", { defaultValue: "Share" })}
-          </Button>
+            idleText={t("analysis.share", { defaultValue: "Share" })}
+            savedText={t("analysis.shared", { defaultValue: "Shared" })}
+            loadingDuration={1200}
+            successDuration={1000}
+            onAction={handleShareAnalysis}
+          />
         )}
         <SaveToggle
           size="sm"
