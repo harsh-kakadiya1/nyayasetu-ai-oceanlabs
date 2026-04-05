@@ -31,6 +31,30 @@ function userIsAdmin(user: any): boolean {
   return user.role === "admin" || normalizeEmailIdentifier(String(user.username || "")) === ADMIN_USERNAME;
 }
 
+function getPublicFrontendBaseUrl(req: any): string {
+  const configuredFrontendUrl = process.env.FRONTEND_URL?.trim();
+  if (configuredFrontendUrl) {
+    return configuredFrontendUrl.replace(/\/+$/, "");
+  }
+
+  const requestOrigin = typeof req.headers.origin === "string" ? req.headers.origin.trim() : "";
+  if (requestOrigin) {
+    return requestOrigin.replace(/\/+$/, "");
+  }
+
+  const host = typeof req.headers.host === "string" ? req.headers.host.trim() : "";
+  if (!host) {
+    return "";
+  }
+
+  const forwardedProto = typeof req.headers["x-forwarded-proto"] === "string"
+    ? req.headers["x-forwarded-proto"].split(",")[0]
+    : undefined;
+  const protocol = forwardedProto || req.protocol || "https";
+
+  return `${protocol}://${host}`.replace(/\/+$/, "");
+}
+
 async function ensureAdminAccount() {
   const existingAdmin = await storage.getUserByUsername(ADMIN_USERNAME);
 
@@ -267,6 +291,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "POST /api/documents/analyze-text", 
         "GET /api/analysis/:id/messages",
         "POST /api/analysis/:id/chat",
+        "POST /api/analysis/:id/share",
+        "GET /api/public/analysis/:shareToken",
         "GET /api/history"
       ]
     });
@@ -552,6 +578,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get analysis error:", error);
       res.status(500).json({ error: "Failed to retrieve analysis" });
+    }
+  });
+
+  // Create/retrieve a public share link for an analysis
+  app.post(["/api/analysis/:id/share", "/api/analysis-share"], requireAuth, async (req, res) => {
+    try {
+      const idFromParams = req.params.id;
+      const idFromQuery = typeof req.query.analysisId === "string" ? req.query.analysisId : undefined;
+      const id = idFromParams || idFromQuery;
+
+      if (!id) {
+        return res.status(400).json({ error: "analysisId is required" });
+      }
+
+      const analysis = await storage.getAnalysis(id);
+      if (!analysis) {
+        return res.status(404).json({ error: "Analysis not found" });
+      }
+
+      if (analysis.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const sharedAnalysis = await storage.setAnalysisPublicShare(req.user!.id, id);
+      if (!sharedAnalysis || !sharedAnalysis.shareToken) {
+        return res.status(500).json({ error: "Failed to create share link" });
+      }
+
+      const sharePath = `/shared/${encodeURIComponent(sharedAnalysis.shareToken)}`;
+      const baseUrl = getPublicFrontendBaseUrl(req);
+      const shareUrl = baseUrl ? `${baseUrl}${sharePath}` : sharePath;
+
+      return res.json({
+        analysisId: sharedAnalysis.id,
+        isPublic: sharedAnalysis.isPublic,
+        shareToken: sharedAnalysis.shareToken,
+        sharePath,
+        shareUrl,
+      });
+    } catch (error) {
+      console.error("Share analysis error:", error);
+      return res.status(500).json({ error: "Failed to create share link" });
+    }
+  });
+
+  // Get publicly shared analysis by share token (no auth required)
+  app.get(["/api/public/analysis/:shareToken", "/api/public-analysis"], async (req, res) => {
+    try {
+      const tokenFromParams = req.params.shareToken;
+      const tokenFromQuery = typeof req.query.shareToken === "string" ? req.query.shareToken : undefined;
+      const shareToken = tokenFromParams || tokenFromQuery;
+
+      if (!shareToken) {
+        return res.status(400).json({ error: "shareToken is required" });
+      }
+
+      const publicRecord = await storage.getPublicAnalysisByShareToken(shareToken);
+      if (!publicRecord) {
+        return res.status(404).json({ error: "Shared analysis not found" });
+      }
+
+      const { analysis, document } = publicRecord;
+      return res.json({
+        document: {
+          id: document.id,
+          filename: document.filename,
+          documentType: document.documentType,
+        },
+        analysis: {
+          id: analysis.id,
+          documentId: analysis.documentId,
+          summary: analysis.summary,
+          riskLevel: analysis.riskLevel,
+          keyTerms: analysis.keyTerms,
+          riskItems: analysis.riskItems,
+          clauses: analysis.clauses,
+          recommendations: analysis.recommendations,
+          wordCount: analysis.wordCount,
+          processingTime: analysis.processingTime,
+          createdAt: analysis.createdAt,
+          sharedAt: analysis.shareCreatedAt,
+        },
+      });
+    } catch (error) {
+      console.error("Get public shared analysis error:", error);
+      return res.status(500).json({ error: "Failed to retrieve shared analysis" });
     }
   });
 

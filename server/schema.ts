@@ -49,12 +49,15 @@ export const insertAnalysisSchema = z.object({
   recommendations: z.any().nullable().optional(),
   wordCount: z.number().nullable().optional(),
   processingTime: z.string().nullable().optional(),
+  isPublic: z.boolean().optional(),
+  shareToken: z.string().nullable().optional(),
 });
 
 export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
 export type Analysis = InsertAnalysis & {
   id: string;
   createdAt?: Date;
+  shareCreatedAt?: Date | null;
 };
 
 // Chat Message types

@@ -2,6 +2,15 @@ import { type User, type InsertUser, type Document, type InsertDocument, type An
 import { randomUUID } from "crypto";
 import { normalizeEmailIdentifier } from "./emailUtils.js";
 
+export type PublicAnalysisRecord = {
+  analysis: Analysis;
+  document: {
+    id: string;
+    filename?: string | null;
+    documentType?: string | null;
+  };
+};
+
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -21,6 +30,8 @@ export interface IStorage {
   createAnalysis(analysis: InsertAnalysis): Promise<Analysis>;
   getAnalysis(id: string): Promise<Analysis | undefined>;
   getUserAnalyses(userId: string): Promise<Analysis[]>;
+  setAnalysisPublicShare(userId: string, analysisId: string): Promise<Analysis | undefined>;
+  getPublicAnalysisByShareToken(shareToken: string): Promise<PublicAnalysisRecord | undefined>;
   clearUserHistory(userId: string): Promise<number>;
   deleteUserAnalysis(userId: string, analysisId: string): Promise<boolean>;
   
@@ -185,6 +196,9 @@ export class MemStorage implements IStorage {
       recommendations: insertAnalysis.recommendations || null,
       wordCount: insertAnalysis.wordCount || null,
       processingTime: insertAnalysis.processingTime || null,
+      isPublic: insertAnalysis.isPublic ?? false,
+      shareToken: insertAnalysis.shareToken ?? null,
+      shareCreatedAt: insertAnalysis.isPublic ? new Date() : null,
       createdAt: new Date(),
     };
     this.analyses.set(id, analysis);
@@ -199,6 +213,51 @@ export class MemStorage implements IStorage {
     return Array.from(this.analyses.values())
       .filter((analysis) => analysis.userId === userId)
       .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async setAnalysisPublicShare(userId: string, analysisId: string): Promise<Analysis | undefined> {
+    const existing = this.analyses.get(analysisId);
+    if (!existing || existing.userId !== userId) {
+      return undefined;
+    }
+
+    const shareToken = typeof existing.shareToken === "string" && existing.shareToken.length > 0
+      ? existing.shareToken
+      : randomUUID().replace(/-/g, "");
+
+    const updated: Analysis = {
+      ...existing,
+      isPublic: true,
+      shareToken,
+      shareCreatedAt: existing.shareCreatedAt ?? new Date(),
+    };
+
+    this.analyses.set(analysisId, updated);
+    return updated;
+  }
+
+  async getPublicAnalysisByShareToken(shareToken: string): Promise<PublicAnalysisRecord | undefined> {
+    const match = Array.from(this.analyses.values()).find(
+      (analysis) => analysis.isPublic && analysis.shareToken === shareToken,
+    );
+
+    if (!match) {
+      return undefined;
+    }
+
+    const document = this.documents.get(match.documentId);
+    if (!document) {
+      return undefined;
+    }
+
+    return {
+      analysis: match,
+      document: {
+        id: document.id,
+        filename: document.filename ?? null,
+        documentType: document.documentType ?? null,
+      },
+    };
   }
 
   async clearUserHistory(userId: string): Promise<number> {

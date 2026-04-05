@@ -4,12 +4,13 @@ import { SaveToggle } from "@/components/ui/save-toggle";
 import { jsPDF } from "jspdf";
 import RiskAssessment from "./risk-assessment";
 import QAChat from "./qa-chat";
-import { ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
+import { ChevronDown, ChevronRight, Copy, Check, Share2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import API_ENDPOINTS from "@/lib/api";
 import {
   Tooltip,
   TooltipContent,
@@ -41,14 +42,22 @@ interface AnalysisData {
 
 interface AnalysisResultsProps {
   analysisData: AnalysisData;
+  showChat?: boolean;
+  allowShare?: boolean;
 }
 
-export default function AnalysisResults({ analysisData }: AnalysisResultsProps) {
+export default function AnalysisResults({
+  analysisData,
+  showChat = true,
+  allowShare = true,
+}: AnalysisResultsProps) {
   const { t } = useTranslation();
   const { document: documentData, analysis } = analysisData;
   const [expandedClauses, setExpandedClauses] = useState<Set<number>>(new Set());
   const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set());
   const [downloadStatus, setDownloadStatus] = useState<'idle' | 'loading' | 'success' | 'saved'>('idle');
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -224,6 +233,75 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
     }
   }, [analysis, documentData.filename, toast]);
 
+  const handleShareAnalysis = useCallback(async () => {
+    if (!analysis.id || isSharing) {
+      return;
+    }
+
+    setIsSharing(true);
+
+    try {
+      const response = await fetch(API_ENDPOINTS.analysis.share(analysis.id), {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => ({ error: "Failed to create share link" }));
+        throw new Error(errorPayload.error || "Failed to create share link");
+      }
+
+      const payload = await response.json() as {
+        shareUrl?: string;
+        sharePath?: string;
+        shareToken?: string;
+      };
+
+      const fallbackPath = payload.sharePath || (payload.shareToken ? `/shared/${encodeURIComponent(payload.shareToken)}` : "");
+      const shareUrl = payload.shareUrl || (fallbackPath ? `${window.location.origin}${fallbackPath}` : "");
+
+      if (!shareUrl) {
+        throw new Error("Share link is unavailable");
+      }
+
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        copied = true;
+      } catch (copyError) {
+        console.warn("Clipboard copy failed:", copyError);
+      }
+
+      if (copied) {
+        setShareCopied(true);
+        toast({
+          title: t("analysis.shareLinkReady", { defaultValue: "Share link ready" }),
+          description: t("analysis.shareLinkCopied", { defaultValue: "Public link copied to clipboard" }),
+        });
+
+        setTimeout(() => setShareCopied(false), 2200);
+      } else {
+        window.prompt(t("analysis.copyShareLinkPrompt", { defaultValue: "Copy this public link:" }), shareUrl);
+        toast({
+          title: t("analysis.shareLinkReady", { defaultValue: "Share link ready" }),
+          description: t("analysis.shareLinkCreated", { defaultValue: "Public link created" }),
+        });
+      }
+    } catch (error) {
+      const message = error instanceof Error
+        ? error.message
+        : t("analysis.shareFailed", { defaultValue: "Failed to create share link" });
+
+      toast({
+        title: t("analysis.shareFailed", { defaultValue: "Share failed" }),
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSharing(false);
+    }
+  }, [analysis.id, isSharing, t, toast]);
+
   const toggleClause = (index: number) => {
     const newExpanded = new Set(expandedClauses);
     if (newExpanded.has(index)) {
@@ -274,7 +352,25 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Download Report Button */}
-      <div className="flex justify-end pb-1">
+      <div className="flex flex-wrap items-center justify-end gap-2 pb-1">
+        {allowShare && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleShareAnalysis}
+            disabled={isSharing}
+            className="h-10 rounded-full border-[#2d575e]/20 bg-white/70 px-4 text-sm font-semibold text-[#1f4f57] hover:bg-[#eef8f5]"
+            data-testid="button-share-analysis"
+          >
+            {shareCopied ? <Check className="mr-2 h-4 w-4" /> : <Share2 className="mr-2 h-4 w-4" />}
+            {shareCopied
+              ? t("analysis.linkCopied", { defaultValue: "Link copied" })
+              : isSharing
+                ? t("analysis.sharing", { defaultValue: "Sharing..." })
+                : t("analysis.share", { defaultValue: "Share" })}
+          </Button>
+        )}
         <SaveToggle
           size="sm"
           idleText="Save"
@@ -503,9 +599,11 @@ export default function AnalysisResults({ analysisData }: AnalysisResultsProps) 
         </div>
       </div>
 
-      <div className="my-2 border-y border-[#2d575e]/12 py-5" data-testid="section-qa-chat">
-      <QAChat analysisId={analysis.id} documentContent={documentData.content} />
-      </div>
+      {showChat && (
+        <div className="my-2 border-y border-[#2d575e]/12 py-5" data-testid="section-qa-chat">
+          <QAChat analysisId={analysis.id} documentContent={documentData.content} />
+        </div>
+      )}
 
       {/* Action Recommendations */}
       <div className="analysis-card" data-testid="card-recommendations">

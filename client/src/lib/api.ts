@@ -20,6 +20,8 @@ export const API_ENDPOINTS = {
     get: (analysisId: string) => `${API_BASE_URL}/api/analysis?analysisId=${encodeURIComponent(analysisId)}`,
     getMessages: (analysisId: string) => `${API_BASE_URL}/api/analysis-messages?analysisId=${encodeURIComponent(analysisId)}`,
     askQuestion: (analysisId: string) => `${API_BASE_URL}/api/analysis-question?analysisId=${encodeURIComponent(analysisId)}`,
+    share: (analysisId: string) => `${API_BASE_URL}/api/analysis-share?analysisId=${encodeURIComponent(analysisId)}`,
+    getPublic: (shareToken: string) => `${API_BASE_URL}/api/public-analysis?shareToken=${encodeURIComponent(shareToken)}`,
   },
   history: `${API_BASE_URL}/api/history`,
   historyItem: (analysisId: string) => `${API_BASE_URL}/api/history/${encodeURIComponent(analysisId)}`,

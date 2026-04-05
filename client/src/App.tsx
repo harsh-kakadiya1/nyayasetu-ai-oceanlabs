@@ -10,6 +10,7 @@ import Dashboard from "@/pages/dashboard";
 import Admin from "@/pages/admin";
 import Login from "@/pages/login";
 import Signup from "@/pages/signup";
+import SharedAnalysisPage from "@/pages/shared-analysis";
 import NotFound from "@/pages/not-found";
 import "./i18n"; // Initialize i18n
 import Navbar from "@/components/navbar";
@@ -54,6 +55,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/shared/:shareToken" component={SharedAnalysisPage} />
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       <Route path="/dashboard" component={ProtectedDashboard} />

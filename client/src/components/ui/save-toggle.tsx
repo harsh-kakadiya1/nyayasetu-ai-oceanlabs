@@ -114,7 +114,7 @@ export const SaveToggle: React.FC<SaveToggleProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-center p-10">
+    <div className="flex items-center justify-center">
       <MotionConfig
         transition={{
           type: 'spring',

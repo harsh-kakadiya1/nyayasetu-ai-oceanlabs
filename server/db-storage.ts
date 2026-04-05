@@ -105,6 +105,9 @@ async function ensureTables() {
           recommendations JSONB,
           word_count INTEGER,
           processing_time TEXT,
+          is_public BOOLEAN NOT NULL DEFAULT false,
+          share_token TEXT,
+          share_created_at TIMESTAMPTZ,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
       `);
@@ -129,6 +132,27 @@ async function ensureTables() {
       await db.query(`
         ALTER TABLE documents
         ADD COLUMN IF NOT EXISTS is_encrypted BOOLEAN DEFAULT false
+      `);
+
+      await db.query(`
+        ALTER TABLE analyses
+        ADD COLUMN IF NOT EXISTS is_public BOOLEAN NOT NULL DEFAULT false
+      `);
+
+      await db.query(`
+        ALTER TABLE analyses
+        ADD COLUMN IF NOT EXISTS share_token TEXT
+      `);
+
+      await db.query(`
+        ALTER TABLE analyses
+        ADD COLUMN IF NOT EXISTS share_created_at TIMESTAMPTZ
+      `);
+
+      await db.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS analyses_share_token_unique_idx
+        ON analyses (share_token)
+        WHERE share_token IS NOT NULL
       `);
     })();
   }
@@ -388,9 +412,22 @@ export class DbStorage {
     const result = await getPool().query<Analysis>(
       `
       INSERT INTO analyses (
-        id, user_id, document_id, summary, risk_level, key_terms, risk_items, clauses, recommendations, word_count, processing_time
+        id,
+        user_id,
+        document_id,
+        summary,
+        risk_level,
+        key_terms,
+        risk_items,
+        clauses,
+        recommendations,
+        word_count,
+        processing_time,
+        is_public,
+        share_token,
+        share_created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8::jsonb, $9::jsonb, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8::jsonb, $9::jsonb, $10, $11, $12, $13, $14)
       RETURNING
         id,
         user_id as "userId",
@@ -403,6 +440,9 @@ export class DbStorage {
         recommendations,
         word_count as "wordCount",
         processing_time as "processingTime",
+        is_public as "isPublic",
+        share_token as "shareToken",
+        share_created_at as "shareCreatedAt",
         created_at as "createdAt"
       `,
       [
@@ -417,6 +457,9 @@ export class DbStorage {
         JSON.stringify(insertAnalysis.recommendations ?? null),
         insertAnalysis.wordCount ?? null,
         insertAnalysis.processingTime ?? null,
+        insertAnalysis.isPublic ?? false,
+        insertAnalysis.shareToken ?? null,
+        insertAnalysis.isPublic ? new Date() : null,
       ],
     );
     return result.rows[0];
@@ -438,6 +481,9 @@ export class DbStorage {
         recommendations,
         word_count as "wordCount",
         processing_time as "processingTime",
+        is_public as "isPublic",
+        share_token as "shareToken",
+        share_created_at as "shareCreatedAt",
         created_at as "createdAt"
       FROM analyses
       WHERE id = $1
@@ -464,6 +510,9 @@ export class DbStorage {
         recommendations,
         word_count as "wordCount",
         processing_time as "processingTime",
+        is_public as "isPublic",
+        share_token as "shareToken",
+        share_created_at as "shareCreatedAt",
         created_at as "createdAt"
       FROM analyses
       WHERE user_id = $1
@@ -472,6 +521,117 @@ export class DbStorage {
       [userId],
     );
     return result.rows;
+  }
+
+  async setAnalysisPublicShare(userId: string, analysisId: string): Promise<Analysis | undefined> {
+    await ensureTables();
+
+    const generatedToken = randomUUID().replace(/-/g, "");
+    const result = await getPool().query<Analysis>(
+      `
+      UPDATE analyses
+      SET
+        is_public = true,
+        share_token = COALESCE(share_token, $3),
+        share_created_at = COALESCE(share_created_at, NOW())
+      WHERE id = $1 AND user_id = $2
+      RETURNING
+        id,
+        user_id as "userId",
+        document_id as "documentId",
+        summary,
+        risk_level as "riskLevel",
+        key_terms as "keyTerms",
+        risk_items as "riskItems",
+        clauses,
+        recommendations,
+        word_count as "wordCount",
+        processing_time as "processingTime",
+        is_public as "isPublic",
+        share_token as "shareToken",
+        share_created_at as "shareCreatedAt",
+        created_at as "createdAt"
+      `,
+      [analysisId, userId, generatedToken],
+    );
+
+    return result.rows[0];
+  }
+
+  async getPublicAnalysisByShareToken(shareToken: string): Promise<{
+    analysis: Analysis;
+    document: {
+      id: string;
+      filename?: string | null;
+      documentType?: string | null;
+    };
+  } | undefined> {
+    await ensureTables();
+
+    type PublicAnalysisRow = Analysis & {
+      shareDocumentId: string;
+      shareFilename: string | null;
+      shareDocumentType: string | null;
+    };
+
+    const result = await getPool().query<PublicAnalysisRow>(
+      `
+      SELECT
+        a.id,
+        a.user_id as "userId",
+        a.document_id as "documentId",
+        a.summary,
+        a.risk_level as "riskLevel",
+        a.key_terms as "keyTerms",
+        a.risk_items as "riskItems",
+        a.clauses,
+        a.recommendations,
+        a.word_count as "wordCount",
+        a.processing_time as "processingTime",
+        a.is_public as "isPublic",
+        a.share_token as "shareToken",
+        a.share_created_at as "shareCreatedAt",
+        a.created_at as "createdAt",
+        d.id as "shareDocumentId",
+        d.filename as "shareFilename",
+        d.document_type as "shareDocumentType"
+      FROM analyses a
+      INNER JOIN documents d ON d.id = a.document_id
+      WHERE a.share_token = $1 AND a.is_public = true
+      LIMIT 1
+      `,
+      [shareToken],
+    );
+
+    const row = result.rows[0];
+    if (!row) {
+      return undefined;
+    }
+
+    return {
+      analysis: {
+        id: row.id,
+        userId: row.userId,
+        documentId: row.documentId,
+        summary: row.summary,
+        riskLevel: row.riskLevel,
+        keyTerms: row.keyTerms,
+        riskItems: row.riskItems,
+        clauses: row.clauses,
+        recommendations: row.recommendations,
+        wordCount: row.wordCount,
+        processingTime: row.processingTime,
+        isPublic: row.isPublic,
+        shareToken: row.shareToken,
+        shareCreatedAt: row.shareCreatedAt,
+        createdAt: row.createdAt,
+      },
+      document: {
+        id: row.shareDocumentId,
+        filename: row.shareFilename,
+        documentType: row.shareDocumentType,
+      },
+    };
   }
 
   async clearUserHistory(userId: string): Promise<number> {
